@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useExperiment } from '../context/ExperimentContext';
-import { Target, ArrowRight, Play, RefreshCw } from 'lucide-react';
+import { Target, Play, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 export const PredictFailure: React.FC = () => {

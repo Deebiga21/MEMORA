@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, CheckCircle2, Info } from 'lucide-react';
+import { Settings, Info } from 'lucide-react';
 
 export const BdhCqConnection: React.FC = () => {
   const [activeComponent, setActiveComponent] = useState<'ACTIVITY' | 'STATE' | 'SYNAPSES' | 'MEMORY'>('MEMORY');

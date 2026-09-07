@@ -14,10 +14,6 @@ export const RetentionVsLearning: React.FC = () => {
     // Generate a curve up to the current conflict count
     const data = [];
     for (let i = 0; i <= Math.max(10, conflictingUpdateCount + 2); i++) {
-      // Simulate typical catastrophic forgetting curve
-      const retention = i === 0 ? 100 : Math.max(0, 100 - (i * i * 1.5));
-      const acquisition = i === 0 ? 0 : Math.min(100, 50 + (i * 10));
-      
       // If we are at the exact current update count, use the actual real metrics
       if (i === conflictingUpdateCount) {
         data.push({

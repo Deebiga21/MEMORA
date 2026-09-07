@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useExperiment } from '../context/ExperimentContext';
-import { Database, Search, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Database, Search, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export const MemoryPlayground: React.FC = () => {
-  const { dataset, vocab, trainBase, queryModel, predictions, resetState } = useExperiment();
+  const { dataset, trainBase, queryModel, predictions, resetState } = useExperiment();
   
   const [teachConcept, setTeachConcept] = useState('');
   const [teachAssociation, setTeachAssociation] = useState('');
@@ -23,8 +23,6 @@ export const MemoryPlayground: React.FC = () => {
       queryModel(queryConcept.toUpperCase());
     }
   };
-
-  const isPredictionCorrect = predictions.length > 0 && predictions[0].word === dataset.base[0]?.y;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -146,7 +144,7 @@ export const MemoryPlayground: React.FC = () => {
                     <YAxis dataKey="word" type="category" width={70} stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
                     <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '4px', color: 'hsl(var(--card-foreground))'}} />
                     <Bar dataKey="confidence" radius={[0, 4, 4, 0]}>
-                      {predictions.slice(0, 5).map((entry, index) => (
+                      {predictions.slice(0, 5).map((_, index) => (
                         <Cell key={`cell-${index}`} fill={index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'} />
                       ))}
                     </Bar>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useExperiment } from '../context/ExperimentContext';
 import { ArrowRight, BrainCircuit, Zap, Layers, Beaker } from 'lucide-react';
 
 export const Overview: React.FC = () => {

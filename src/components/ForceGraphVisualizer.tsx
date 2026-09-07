@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 
 interface ForceGraphVisualizerProps {

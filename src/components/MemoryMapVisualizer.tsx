@@ -1,13 +1,11 @@
-import React from 'react';
-
 interface MemoryMapVisualizerProps {
-  size: number;
+  size?: number;
   W: number[][];
   S: number[][];
   words: string[];
 }
 
-export function MemoryMapVisualizer({ size, W, S, words }: MemoryMapVisualizerProps) {
+export function MemoryMapVisualizer({ W, S, words }: MemoryMapVisualizerProps) {
   // Simple heatmap visualization for a small vocabulary
   // We'll render a grid where rows=input word, cols=output word
   return (

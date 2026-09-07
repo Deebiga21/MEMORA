@@ -3,7 +3,7 @@ import { useExperiment } from '../context/ExperimentContext';
 import { Database, Zap, RefreshCw, ArrowDown, Plus } from 'lucide-react';
 
 export const FastWeightLab: React.FC = () => {
-  const { dataset, lambda, setLambda, eta, setEta, updateTestTime, resetState, predictions, queryModel } = useExperiment();
+  const { dataset, lambda, setLambda, eta, setEta, updateTestTime, resetState, predictions } = useExperiment();
   const [testConcept, setTestConcept] = useState(dataset.tests[0]?.x || '');
   const [testAssoc, setTestAssoc] = useState(dataset.tests[0]?.y || '');
 
