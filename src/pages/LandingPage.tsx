@@ -2,6 +2,8 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import memoraLogo from '../assets/memora-logo.png';
 import heroGraphic from '../assets/hero-graphic.png';
+import LineWaves from '../components/LineWaves';
+
 interface LandingPageProps {
   onLaunch: () => void;
 }
@@ -9,6 +11,9 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 flex flex-col items-center pt-6 px-8 relative overflow-x-hidden">
+      <div className="absolute inset-0 z-0 opacity-60">
+        <LineWaves enableMouseInteraction={true} />
+      </div>
       
       {/* Navbar */}
       <nav className="w-full max-w-7xl flex justify-between items-center z-10">
@@ -43,12 +48,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
 
         <div className="flex flex-col sm:flex-row items-center gap-2 bg-card p-1.5 rounded-xl border border-border shadow-sm max-w-md w-full mx-auto">
           <input 
+            id="email-input"
             type="email" 
             placeholder="What's your work email?" 
             className="flex-1 bg-transparent px-4 py-2 outline-none text-sm placeholder:text-muted-foreground"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const email = e.currentTarget.value;
+                if (email) fetch('http://localhost:8000/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+                onLaunch();
+              }
+            }}
           />
           <button 
-            onClick={onLaunch}
+            onClick={() => {
+              const emailInput = document.getElementById('email-input') as HTMLInputElement;
+              if (emailInput && emailInput.value) {
+                fetch('http://localhost:8000/api/subscribe', { 
+                  method: 'POST', 
+                  headers: { 'Content-Type': 'application/json' }, 
+                  body: JSON.stringify({ email: emailInput.value }) 
+                });
+              }
+              onLaunch();
+            }}
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 whitespace-nowrap"
           >
             Launch Lab <ArrowRight className="w-4 h-4" />
@@ -61,7 +84,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.15) 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
              
              {/* Network Graphic */}
-             <img src={heroGraphic} alt="Network Graph" className="absolute w-3/4 max-w-2xl animate-float object-contain" />
+             <img src={heroGraphic} alt="Network Graph" className="absolute inset-0 w-full h-full object-cover mix-blend-multiply scale-105 animate-float" />
 
 
           </div>

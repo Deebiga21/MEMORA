@@ -26,6 +26,18 @@ class RetrieveRequest(BaseModel):
     query: str
     top_k: int = 3
 
+class EmailRequest(BaseModel):
+    email: str
+
+emails_db = []
+
+@app.post("/api/subscribe")
+def subscribe(req: EmailRequest):
+    if req.email not in emails_db:
+        emails_db.append(req.email)
+    return {"status": "success", "message": "Email recorded", "total": len(emails_db)}
+
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the MEMORA-X API"}
