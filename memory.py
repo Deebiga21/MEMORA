@@ -195,7 +195,7 @@ class FastWeightMemory:
 
     def reset(self):
         """Clear all memory."""
-        self.W = np.zeros((dim, dim), dtype=np.float32)
+        self.W = np.zeros((self.dim, self.dim), dtype=np.float32)
         self.keys = []
         self.values = []
         self.update_history = []

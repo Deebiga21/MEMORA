@@ -138,20 +138,52 @@ export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  const queryModel = (word: string, silent = false) => {
+  const queryModel = async (word: string, silent = false) => {
+    // Keep local model updated for visualizations
     const vec = vocab.toVector(word);
-    const result = engine.forward(vec);
-    const topWords = vocab.toWord(result);
-    setPredictions(topWords);
-    if (!silent) {
-      setHistoryLog(prev => [...prev, `Queried [${word}] -> Top: ${topWords[0].word}`]);
+    const localResult = engine.forward(vec);
+    
+    try {
+      const res = await fetch('http://localhost:8000/api/retrieve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: word, top_k: 5 })
+      });
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const topWords = data.results.map((r: any) => ({ word: r.target, confidence: r.confidence }));
+        setPredictions(topWords);
+        if (!silent) {
+          setHistoryLog(prev => [...prev, `[API] Queried [${word}] -> Top: ${topWords[0].word}`]);
+        }
+      } else {
+        setPredictions([{ word: "UNKNOWN", confidence: 0 }]);
+        if (!silent) {
+          setHistoryLog(prev => [...prev, `[API] Queried [${word}] -> No match`]);
+        }
+      }
+    } catch (err) {
+      console.error("Backend not reachable, falling back to local model", err);
+      const topWords = vocab.toWord(localResult);
+      setPredictions(topWords);
+      if (!silent) {
+        setHistoryLog(prev => [...prev, `[LOCAL] Queried [${word}] -> Top: ${topWords[0].word}`]);
+      }
     }
+
     calculateMetrics();
     forceUpdate();
   };
 
-  const updateTestTime = (x: string, y: string) => {
+  const updateTestTime = async (x: string, y: string) => {
     engine.updateState(vocab.toVector(x), vocab.toVector(y));
+    try {
+      await fetch('http://localhost:8000/api/store', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cue: x, target: y })
+      });
+    } catch (e) { console.error("Backend error", e); }
+    
     setConflictingUpdateCount(c => c + 1);
     setHistoryLog(prev => [...prev, `Test-Time Update: [${x}] -> [${y}]`]);
     calculateMetrics();
@@ -159,8 +191,15 @@ export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     queryModel(x, true);
   };
 
-  const trainBase = (x: string, y: string) => {
+  const trainBase = async (x: string, y: string) => {
     engine.trainBase([{ x: vocab.toVector(x), y: vocab.toVector(y) }]);
+    try {
+      await fetch('http://localhost:8000/api/store', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cue: x, target: y })
+      });
+    } catch (e) { console.error("Backend error", e); }
+
     setHistoryLog(prev => [...prev, `Trained Base: [${x}] -> [${y}]`]);
     calculateMetrics();
     forceUpdate();
@@ -179,8 +218,19 @@ export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     forceUpdate();
   };
 
-  const resetState = () => {
+  const resetState = async () => {
     engine.resetState();
+    try {
+      await fetch('http://localhost:8000/api/reset', { method: 'POST' });
+      // Restore base memory in backend
+      for (const pair of dataset.base) {
+        await fetch('http://localhost:8000/api/store', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cue: pair.x, target: pair.y })
+        });
+      }
+    } catch (e) { console.error("Backend error", e); }
+
     setConflictingUpdateCount(0);
     setOldMemoryRetention(100);
     setNewMemoryAcquisition(0);
@@ -190,12 +240,24 @@ export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setPredictions([]);
   };
 
-  const fullReset = () => {
+  const fullReset = async () => {
     const newEngine = new AssociativeMemory(vocab.size, eta, lambda);
     dataset.base.forEach(pair => {
       newEngine.trainBase([{ x: vocab.toVector(pair.x), y: vocab.toVector(pair.y) }]);
     });
     engineRef.current = newEngine;
+    
+    try {
+      await fetch('http://localhost:8000/api/reset', { method: 'POST' });
+      // Restore base memory in backend
+      for (const pair of dataset.base) {
+        await fetch('http://localhost:8000/api/store', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cue: pair.x, target: pair.y })
+        });
+      }
+    } catch (e) { console.error("Backend error", e); }
+
     setHistoryLog([`[SYSTEM] Loaded Dataset: ${dataset.name}`]);
     setPredictions([]);
     setConflictingUpdateCount(0);

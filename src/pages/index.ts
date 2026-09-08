@@ -10,3 +10,4 @@ export * from './BdhCqConnection';
 export * from './ExperimentReport';
 export * from './ExperimentHistory';
 export * from './LearningSummary';
+export * from './LandingPage';

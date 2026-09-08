@@ -7,6 +7,7 @@ import * as Pages from './pages';
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>('overview');
   const [resetKey, setResetKey] = useState(0);
+  const [isLabActive, setIsLabActive] = useState(false);
 
   const handleReset = () => {
     setResetKey(k => k + 1);
@@ -42,11 +43,21 @@ export default function App() {
     }
   };
 
-  return (
+  const labContent = (
     <ExperimentProvider key={resetKey}>
       <Layout activePage={activePage} setActivePage={setActivePage} onReset={handleReset}>
         {renderPage()}
       </Layout>
     </ExperimentProvider>
+  );
+
+  return (
+    <div style={isLabActive ? { height: '100vh', width: '100vw', overflow: 'hidden' } : { minHeight: '100vh', width: '100vw' }}>
+      {!isLabActive ? (
+        <Pages.LandingPage onLaunch={() => setIsLabActive(true)} />
+      ) : (
+        labContent
+      )}
+    </div>
   );
 }
