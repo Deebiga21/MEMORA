@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import memoraLogo from '../assets/memora-logo.png';
 import heroGraphic from '../assets/hero-graphic.png';
+// @ts-ignore
 import LineWaves from '../components/LineWaves';
 
 interface LandingPageProps {

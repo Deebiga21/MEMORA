@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any, Tuple
 from memory import FastWeightMemory
+import os
 
 app = FastAPI(title="MEMORA-X Backend API")
 
@@ -67,3 +70,15 @@ def status():
 def reset():
     memory_instance.reset()
     return {"status": "success", "message": "Memory reset"}
+
+# Serve frontend static files if they exist
+if os.path.exists("dist"):
+    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+    
+    @app.get("/{catchall:path}")
+    def serve_frontend(catchall: str):
+        # Don't intercept API routes
+        if catchall.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        return FileResponse("dist/index.html")
+

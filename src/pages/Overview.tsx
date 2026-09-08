@@ -1,5 +1,7 @@
 import React from 'react';
 import { ArrowRight, BrainCircuit, Zap, Layers, Beaker } from 'lucide-react';
+// @ts-ignore
+import RippleGrid from '../components/RippleGrid';
 
 export const Overview: React.FC = () => {
   // We don't have setActivePage in context, so we'll need a quick workaround or just ask user to use sidebar
@@ -13,8 +15,7 @@ export const Overview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-500">
-      
+    <div className="space-y-12 animate-in fade-in duration-500 relative">
       {/* Hero */}
       <div className="text-center space-y-6 py-12">
         <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-4">
@@ -35,21 +36,26 @@ export const Overview: React.FC = () => {
       </div>
 
       {/* 3 Concepts */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-card p-6 rounded-xl border border-border shadow-lg">
-          <Layers className="w-8 h-8 text-blue-400 mb-4" />
-          <h3 className="text-lg font-bold mb-2">ASSOCIATIVE MEMORY</h3>
-          <p className="text-muted-foreground text-sm">Learn relationships between concepts using a fundamental recurrent neural architecture.</p>
+      <div className="relative p-6 -mx-6 rounded-3xl overflow-hidden">
+        <div className="absolute inset-0 -z-10 opacity-40 pointer-events-none">
+          <RippleGrid gridColor="#818cf8" glowIntensity={0.5} rippleIntensity={0.08} mouseInteraction={true} />
         </div>
-        <div className="bg-card p-6 rounded-xl border border-border shadow-lg">
-          <Zap className="w-8 h-8 text-yellow-400 mb-4" />
-          <h3 className="text-lg font-bold mb-2">FAST WEIGHTS</h3>
-          <p className="text-muted-foreground text-sm">Adapt memory during inference dynamically without retraining the base model parameters.</p>
-        </div>
-        <div className="bg-card p-6 rounded-xl border border-border shadow-lg">
-          <BrainCircuit className="w-8 h-8 text-accent mb-4" />
-          <h3 className="text-lg font-bold mb-2">BDH-CQ</h3>
-          <p className="text-muted-foreground text-sm">Understand how inference-time learning connects to brain-inspired synaptic plasticity.</p>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-card/60 backdrop-blur-md p-6 rounded-xl border border-border shadow-lg">
+            <Layers className="w-8 h-8 text-blue-400 mb-4" />
+            <h3 className="text-lg font-bold mb-2">ASSOCIATIVE MEMORY</h3>
+            <p className="text-muted-foreground text-sm">Learn relationships between concepts using a fundamental recurrent neural architecture.</p>
+          </div>
+          <div className="bg-card/60 backdrop-blur-md p-6 rounded-xl border border-border shadow-lg">
+            <Zap className="w-8 h-8 text-yellow-400 mb-4" />
+            <h3 className="text-lg font-bold mb-2">FAST WEIGHTS</h3>
+            <p className="text-muted-foreground text-sm">Adapt memory during inference dynamically without retraining the base model parameters.</p>
+          </div>
+          <div className="bg-card/60 backdrop-blur-md p-6 rounded-xl border border-border shadow-lg">
+            <BrainCircuit className="w-8 h-8 text-accent mb-4" />
+            <h3 className="text-lg font-bold mb-2">BDH-CQ</h3>
+            <p className="text-muted-foreground text-sm">Understand how inference-time learning connects to brain-inspired synaptic plasticity.</p>
+          </div>
         </div>
       </div>
 
