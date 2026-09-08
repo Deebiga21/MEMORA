@@ -116,23 +116,43 @@ export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     forceUpdate();
   }, [lambda, eta]);
 
-  const calculateMetrics = () => {
+  const calculateMetrics = async () => {
     const baseItem = dataset.base[0];
-    const basePred = engine.forward(vocab.toVector(baseItem.x));
-    const baseWords = vocab.toWord(basePred);
-    const baseTargetConfidence = baseWords.find(w => w.word === baseItem.y)?.confidence || 0;
-    
-    const retention = Math.max(0, Math.min(100, (baseTargetConfidence / 1.0) * 100));
-    setOldMemoryRetention(retention);
+    try {
+      const baseRes = await fetch('http://localhost:8000/api/retrieve', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: baseItem.x, top_k: 5 })
+      });
+      const baseData = await baseRes.json();
+      const baseWords = baseData.results || [];
+      const baseTargetConfidence = baseWords.find((w: any) => w.target === baseItem.y)?.confidence || 0;
+      const retention = Math.max(0, Math.min(100, baseTargetConfidence * 100));
+      setOldMemoryRetention(retention);
+    } catch (e) {
+      const basePred = engine.forward(vocab.toVector(baseItem.x));
+      const baseWordsLocal = vocab.toWord(basePred);
+      const baseTargetConfLocal = baseWordsLocal.find(w => w.word === baseItem.y)?.confidence || 0;
+      setOldMemoryRetention(Math.max(0, Math.min(100, (baseTargetConfLocal / 1.0) * 100)));
+    }
 
     if (conflictingUpdateCount > 0) {
       const testItem = dataset.tests[(conflictingUpdateCount - 1) % dataset.tests.length];
-      const testPred = engine.forward(vocab.toVector(testItem.x));
-      const testWords = vocab.toWord(testPred);
-      const testTargetConfidence = testWords.find(w => w.word === testItem.y)?.confidence || 0;
-      
-      const acquisition = Math.max(0, Math.min(100, (testTargetConfidence / 1.0) * 100));
-      setNewMemoryAcquisition(acquisition);
+      try {
+        const testRes = await fetch('http://localhost:8000/api/retrieve', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: testItem.x, top_k: 5 })
+        });
+        const testData = await testRes.json();
+        const testWords = testData.results || [];
+        const testTargetConfidence = testWords.find((w: any) => w.target === testItem.y)?.confidence || 0;
+        const acquisition = Math.max(0, Math.min(100, testTargetConfidence * 100));
+        setNewMemoryAcquisition(acquisition);
+      } catch (e) {
+        const testPred = engine.forward(vocab.toVector(testItem.x));
+        const testWordsLocal = vocab.toWord(testPred);
+        const testTargetConfLocal = testWordsLocal.find(w => w.word === testItem.y)?.confidence || 0;
+        setNewMemoryAcquisition(Math.max(0, Math.min(100, (testTargetConfLocal / 1.0) * 100)));
+      }
     } else {
       setNewMemoryAcquisition(0);
     }
