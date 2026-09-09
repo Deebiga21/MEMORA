@@ -3,7 +3,7 @@ import { useExperiment } from '../context/ExperimentContext';
 import { Settings2, RefreshCw } from 'lucide-react';
 
 export const FastWeightLab: React.FC = () => {
-  const { state, setParams, queryModel } = useExperiment();
+  const { state, setParams, resetFast, refreshState } = useExperiment();
   const [localLambda, setLocalLambda] = useState(state?.lambda_val || 0.5);
   const [localEta, setLocalEta] = useState(state?.eta || 0.5);
 
@@ -13,8 +13,8 @@ export const FastWeightLab: React.FC = () => {
 
   const handleResetFast = async () => {
     try {
-      await fetch('http://localhost:8000/api/experiment/reset_fast', { method: 'POST' });
-      await queryModel("CAT");
+      await resetFast();
+      await refreshState();
     } catch (e) {
       console.error(e);
     }
