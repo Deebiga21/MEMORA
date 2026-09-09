@@ -76,7 +76,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-end px-8 md:px-12 lg:px-24 z-20">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 md:px-8 z-20">
         
         {/* Glassmorphic Main Card */}
         <div className="w-full max-w-2xl backdrop-blur-2xl bg-white/5 border border-white/20 p-10 md:p-12 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative mt-10 lg:mt-0">
