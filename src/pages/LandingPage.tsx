@@ -74,8 +74,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-left space-y-8 relative z-20">
+        <div className="w-full max-w-6xl flex justify-end items-center">
+          <div className="text-right space-y-8 relative z-20 max-w-2xl">
             <div className="absolute -inset-10 bg-purple-900/20 blur-3xl rounded-full -z-10" />
             
             <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter leading-none text-white drop-shadow-lg">
@@ -83,11 +83,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
               <span className="block text-4xl md:text-5xl mt-4 font-normal text-primary tracking-tight">AI Memory Lab</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-blue-100/80 max-w-xl leading-relaxed font-light">
+            <p className="text-xl md:text-2xl text-blue-100/80 leading-relaxed font-light ml-auto">
               "Experiment with how AI learns, updates, remembers and forgets."
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
               <button 
                 onClick={onLaunch}
                 className="bg-primary hover:bg-primary/90 text-[#0a0418] px-8 py-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(56,189,248,0.4)] hover:shadow-[0_0_50px_rgba(56,189,248,0.6)] hover:scale-105"
@@ -100,31 +100,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
               >
                 EXPLORE MEMORY
               </button>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex justify-end relative z-20">
-            {/* Floating Memory Visualization */}
-            <div className="bg-black/50 backdrop-blur-xl border border-primary/20 p-8 rounded-2xl shadow-[0_0_50px_rgba(56,189,248,0.1)] font-mono text-sm tracking-widest text-primary/80 w-80 transform transition-transform hover:scale-105 hover:border-primary/50">
-              <div className="flex items-center gap-4 mb-6 opacity-80 animate-pulse">
-                <span className="text-white font-bold">CAT</span>
-                <span className="text-primary/50">─────→</span>
-                <span>ANIMAL</span>
-              </div>
-              <div className="flex items-center gap-4 mb-6 opacity-60 ml-4 animate-[fade-in_2s_ease-out_forwards]">
-                <span className="text-primary/30">╲</span>
-              </div>
-              <div className="flex items-center gap-4 mb-6 opacity-90 animate-[slide-in-right_1s_ease-out_forwards]">
-                <span className="text-primary/50"> ├────→</span>
-                <span className="text-cyan-400 font-bold">PET</span>
-              </div>
-              <div className="flex items-center gap-4 mb-6 opacity-60 ml-4 animate-[fade-in_3s_ease-out_forwards]">
-                <span className="text-primary/30">╲</span>
-              </div>
-              <div className="flex items-center gap-4 opacity-70 animate-[slide-in-right_2s_ease-out_forwards]">
-                <span className="text-primary/50">  └────→</span>
-                <span className="text-yellow-400 font-bold drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">WILD</span>
-              </div>
             </div>
           </div>
         </div>
