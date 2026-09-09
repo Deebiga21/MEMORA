@@ -88,7 +88,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     let mouseX = -1000;
     let mouseY = -1000;
 
-    const colors = ['#38bdf8', '#818cf8', '#22d3ee', '#c084fc', '#a855f7', '#9333ea']; // cyan, indigo, sky, purple, violet, fuchsia
+    const colors = ['#818cf8', '#c084fc', '#a855f7', '#9333ea', '#7e22ce', '#d8b4fe']; // cyan, indigo, sky, purple, violet, fuchsia
 
     const init = () => {
       width = window.innerWidth;
@@ -106,7 +106,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
 
     const draw = () => {
       // Dark violet/near-black fluid background
-      ctx.fillStyle = 'rgba(15, 5, 30, 0.2)'; // Slight trail effect
+      ctx.fillStyle = 'rgba(8, 0, 15, 0.2)'; // Slight trail effect
       ctx.fillRect(0, 0, width, height);
 
       // Connection threshold based on mode
@@ -135,7 +135,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
             let alpha = (1 - dist / connectionDistance) * 0.3;
             alpha += mouseGlow * 0.4; // Brighter near mouse
 
-            let strokeStyle = `rgba(56, 189, 248, ${alpha})`; // Default blue
+            let strokeStyle = `rgba(168, 85, 247, ${alpha})`; // Default blue
 
             if (mode === 'FAST_WEIGHT') {
               strokeStyle = `rgba(34, 211, 238, ${alpha * 1.5})`; // Cyan brighter
@@ -196,8 +196,8 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
         ctx.beginPath();
         ctx.arc(mouseX, mouseY, 150, 0, Math.PI * 2);
         const gradient = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 150);
-        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.05)');
-        gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.05)');
+        gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
         ctx.fillStyle = gradient;
         ctx.fill();
       }
@@ -238,7 +238,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: '#0a0418' }}
+      style={{ background: '#05000a' }}
     />
   );
 };

@@ -52,14 +52,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       <NeuralBackground mode={bgMode} />
       
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 py-6 z-50 bg-gradient-to-b from-[#0a0418] to-transparent">
+      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 py-6 z-50 bg-gradient-to-b from-[#05000a] to-transparent">
         <div className="flex items-center gap-2">
-          <img src={memoraLogo} alt="MEMORA" className="h-8 object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]" />
+          <img src={memoraLogo} alt="MEMORA" className="h-8 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
         </div>
         <div className="flex items-center gap-6 text-sm font-medium">
           <button 
             onClick={onLaunch}
-            className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-5 py-2 rounded-full transition-all font-semibold shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:shadow-[0_0_25px_rgba(56,189,248,0.4)]"
+            className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-5 py-2 rounded-full transition-all font-semibold shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
           >
             ENTER LAB
           </button>
@@ -68,7 +68,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-8 z-10 pt-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0418]/40 to-[#0a0418]/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#05000a]/40 to-[#05000a]/80 pointer-events-none" />
         
         {/* Ambient Purple Glows */}
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -83,14 +83,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
               <span className="block text-4xl md:text-5xl mt-4 font-normal text-primary tracking-tight">AI Memory Lab</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-blue-100/80 leading-relaxed font-light ml-auto">
+            <p className="text-xl md:text-2xl text-purple-100/80 leading-relaxed font-light ml-auto">
               "Experiment with how AI learns, updates, remembers and forgets."
             </p>
 
             <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
               <button 
                 onClick={onLaunch}
-                className="bg-primary hover:bg-primary/90 text-[#0a0418] px-8 py-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(56,189,248,0.4)] hover:shadow-[0_0_50px_rgba(56,189,248,0.6)] hover:scale-105"
+                className="bg-primary hover:bg-primary/90 text-[#05000a] px-8 py-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] hover:scale-105"
               >
                 START EXPERIMENT <ArrowRight className="w-4 h-4" />
               </button>
@@ -110,9 +110,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         
         <section ref={playgroundRef} className="min-h-[60vh] flex items-center justify-center px-8">
           <div className="w-full max-w-4xl bg-black/60 backdrop-blur-xl border border-border p-12 rounded-3xl text-center shadow-2xl transition-transform hover:scale-[1.02]">
-            <Database className="w-12 h-12 text-blue-400 mx-auto mb-6 opacity-80" />
+            <Database className="w-12 h-12 text-purple-400 mx-auto mb-6 opacity-80" />
             <h2 className="text-4xl font-bold mb-4 text-white">Memory Playground</h2>
-            <p className="text-xl text-blue-100/70 max-w-2xl mx-auto">
+            <p className="text-xl text-purple-100/70 max-w-2xl mx-auto">
               Watch nodes begin forming associations. Learn relationships between concepts using a fundamental recurrent neural architecture.
             </p>
           </div>
@@ -147,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
             </p>
             <button 
               onClick={onLaunch}
-              className="mt-12 bg-primary/20 hover:bg-primary border border-primary text-white px-8 py-4 rounded-full text-sm font-bold transition-all inline-flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(56,189,248,0.4)]"
+              className="mt-12 bg-primary/20 hover:bg-primary border border-primary text-white px-8 py-4 rounded-full text-sm font-bold transition-all inline-flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(168,85,247,0.4)]"
             >
               START EXPERIMENT <Play className="w-4 h-4" />
             </button>
