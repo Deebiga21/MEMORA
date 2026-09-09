@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Play, Database, Zap, AlertTriangle, Activity } from 'lucide-react';
 import memoraLogo from '../assets/memora-logo.png';
+import heroBg from '../assets/hero-bg.jpg';
 import { NeuralBackground } from '../components/NeuralBackground';
 
 interface LandingPageProps {
@@ -42,46 +43,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
 
   return (
     <div className="min-h-screen bg-transparent text-foreground font-sans selection:bg-primary/30 relative">
-      <NeuralBackground mode={bgMode} />
       
-      {/* Spaceship Cockpit Overlay / Vignette */}
-      <div className="fixed inset-0 pointer-events-none z-10" style={{
-        boxShadow: 'inset 0 0 150px 80px rgba(0,0,0,0.95)',
-        border: '12px solid #050505',
-        borderRadius: '30px'
-      }}>
-         {/* Cockpit corner elements */}
-         <div className="absolute top-0 left-0 w-32 h-32 border-t-4 border-l-4 border-white/5 rounded-tl-[18px]" />
-         <div className="absolute top-0 right-0 w-32 h-32 border-t-4 border-r-4 border-white/5 rounded-tr-[18px]" />
-         <div className="absolute bottom-0 left-0 w-32 h-32 border-b-4 border-l-4 border-white/5 rounded-bl-[18px]" />
-         <div className="absolute bottom-0 right-0 w-32 h-32 border-b-4 border-r-4 border-white/5 rounded-br-[18px]" />
-         
-         {/* Tech Annotations */}
-         <div className="absolute top-[20%] left-[30%] text-xs font-mono text-cyan-400/60 flex items-center gap-2">
-            <div className="w-16 h-px bg-cyan-400/30 transform -rotate-45" />
-            <span>Synaptic Core A1</span>
-         </div>
-         <div className="absolute bottom-[30%] left-[15%] text-xs font-mono text-purple-400/60 flex items-center gap-2">
-            <span>Episodic Store Gamma</span>
-            <div className="w-16 h-px bg-purple-400/30 transform rotate-12" />
-         </div>
-         <div className="absolute top-[30%] right-[15%] text-xs font-mono text-cyan-400/60 flex flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
-               <span>Associative Link Alpha-12</span>
-               <div className="w-12 h-px bg-cyan-400/30 transform rotate-45" />
-            </div>
-         </div>
-      </div>
+      {/* High-Fidelity Spaceship Nebula Image Background */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] ease-in-out"
+        style={{ 
+          backgroundImage: `url(${heroBg})`,
+          // Add a subtle zoom breathing effect based on mode
+          transform: bgMode === 'HERO' ? 'scale(1.02)' : 'scale(1.05)'
+        }}
+      />
+      
+      {/* Dark gradient overlay for text readability when scrolling down */}
+      <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-[#05000a]/50 to-[#05000a]/90" />
+
+      {/* Animated Overlay (Synaptic Firing / Energy Particles) */}
+      <NeuralBackground mode={bgMode} />
 
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-12 py-8 z-50">
+      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 md:px-12 py-6 z-50">
         <div className="flex items-center gap-2">
           <img src={memoraLogo} alt="MEMORA" className="h-6 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] opacity-80" />
         </div>
         <div className="flex items-center gap-6 text-sm font-medium">
           <button 
             onClick={onLaunch}
-            className="bg-transparent border border-white/20 text-white/80 hover:bg-white/5 px-6 py-1.5 rounded-full transition-all font-mono text-xs tracking-widest backdrop-blur-md"
+            className="bg-transparent border border-white/20 text-white/80 hover:bg-white/10 px-6 py-1.5 rounded-full transition-all font-mono text-xs tracking-widest backdrop-blur-md"
           >
             ENTER LAB
           </button>
@@ -89,26 +76,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       </nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-end px-12 lg:px-24 z-20">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-end px-8 md:px-12 lg:px-24 z-20">
         
         {/* Glassmorphic Main Card */}
-        <div className="w-full max-w-2xl backdrop-blur-xl bg-white/5 border border-white/10 p-12 rounded-[2rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] relative overflow-hidden">
-          {/* Internal gradient shine */}
+        <div className="w-full max-w-2xl backdrop-blur-xl bg-black/40 border border-white/10 p-10 md:p-12 rounded-[2rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] relative overflow-hidden mt-10 lg:mt-0">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 text-center lg:text-right space-y-4">
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
               MEMORA-X
             </h1>
-            <h2 className="text-3xl md:text-4xl font-normal text-cyan-100 tracking-tight drop-shadow-lg">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-cyan-100 tracking-tight drop-shadow-lg">
               AI Memory Lab
             </h2>
             
-            <p className="text-lg md:text-xl text-blue-100/70 leading-relaxed font-light mt-6 mb-10 max-w-lg ml-auto">
+            <p className="text-base md:text-lg text-blue-100/80 leading-relaxed font-light mt-6 mb-10 max-w-lg mx-auto lg:ml-auto lg:mr-0">
               "Experiment with how AI learns, updates, remembers and forgets."
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-end gap-4 pt-4">
               <button 
                 onClick={onLaunch}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-3 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest backdrop-blur-md hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-105"
@@ -130,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       <div className="relative z-20 pb-40 space-y-64">
         
         <section ref={playgroundRef} className="min-h-[60vh] flex items-center justify-center px-8">
-          <div className="w-full max-w-4xl bg-black/40 backdrop-blur-xl border border-white/10 p-12 rounded-[2rem] text-center shadow-2xl transition-transform hover:scale-[1.02]">
+          <div className="w-full max-w-4xl bg-[#05000a]/80 backdrop-blur-xl border border-white/10 p-12 rounded-[2rem] text-center shadow-2xl transition-transform hover:scale-[1.02]">
             <Database className="w-12 h-12 text-cyan-400 mx-auto mb-6 opacity-80" />
             <h2 className="text-4xl font-bold mb-4 text-white">Memory Playground</h2>
             <p className="text-xl text-purple-100/70 max-w-2xl mx-auto">
@@ -140,7 +126,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         </section>
 
         <section ref={fastWeightRef} className="min-h-[60vh] flex items-center justify-center px-8">
-          <div className="w-full max-w-4xl bg-black/40 backdrop-blur-xl border border-cyan-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(34,211,238,0.1)] transition-transform hover:scale-[1.02]">
+          <div className="w-full max-w-4xl bg-[#05000a]/80 backdrop-blur-xl border border-cyan-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(34,211,238,0.1)] transition-transform hover:scale-[1.02]">
             <Zap className="w-12 h-12 text-cyan-400 mx-auto mb-6 opacity-90" />
             <h2 className="text-4xl font-bold mb-4 text-white">Fast Weight Lab</h2>
             <p className="text-xl text-cyan-100/70 max-w-2xl mx-auto">
@@ -150,7 +136,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         </section>
 
         <section ref={interferenceRef} className="min-h-[60vh] flex items-center justify-center px-8">
-          <div className="w-full max-w-4xl bg-black/40 backdrop-blur-xl border border-yellow-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(250,204,21,0.1)] transition-transform hover:scale-[1.02]">
+          <div className="w-full max-w-4xl bg-[#05000a]/80 backdrop-blur-xl border border-yellow-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(250,204,21,0.1)] transition-transform hover:scale-[1.02]">
             <AlertTriangle className="w-12 h-12 text-yellow-400 mx-auto mb-6 opacity-90" />
             <h2 className="text-4xl font-bold mb-4 text-white">Interference Lab</h2>
             <p className="text-xl text-yellow-100/70 max-w-2xl mx-auto">
@@ -160,7 +146,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         </section>
 
         <section ref={retentionRef} className="min-h-[60vh] flex items-center justify-center px-8">
-          <div className="w-full max-w-4xl bg-black/40 backdrop-blur-xl border border-indigo-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(129,140,248,0.1)] transition-transform hover:scale-[1.02]">
+          <div className="w-full max-w-4xl bg-[#05000a]/80 backdrop-blur-xl border border-indigo-500/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(129,140,248,0.1)] transition-transform hover:scale-[1.02]">
             <Activity className="w-12 h-12 text-indigo-400 mx-auto mb-6 opacity-90" />
             <h2 className="text-4xl font-bold mb-4 text-white">Retention vs Learning</h2>
             <p className="text-xl text-indigo-100/70 max-w-2xl mx-auto">
