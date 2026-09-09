@@ -26,8 +26,8 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onReset }) => {
   return (
-    <div className="w-64 bg-card border-r border-border h-full flex flex-col fixed left-0 top-0 overflow-y-auto">
-      <div className="p-6 border-b border-border">
+    <div className="w-64 bg-transparent border-r border-white/10 h-full flex flex-col shrink-0 overflow-y-auto">
+      <div className="p-6 border-b border-white/10">
         <h1 className="text-xl font-bold text-primary flex items-center gap-2">
           <BrainCircuit className="w-6 h-6" />
           MEMORA-X

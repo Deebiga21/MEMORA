@@ -3,11 +3,14 @@ import { ExperimentProvider } from './context/ExperimentContext';
 import { Layout } from './components/Layout';
 import type { PageId } from './components/Sidebar';
 import * as Pages from './pages';
+import heroBg from './assets/hero-bg.jpg';
+import { NeuralBackground } from './components/NeuralBackground';
 
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>('overview');
   const [resetKey, setResetKey] = useState(0);
   const [isLabActive, setIsLabActive] = useState(false);
+  const [bgMode, setBgMode] = useState<'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION'>('HERO');
 
   const handleReset = () => {
     setResetKey(k => k + 1);
@@ -52,12 +55,30 @@ export default function App() {
   );
 
   return (
-    <div style={isLabActive ? { height: '100vh', width: '100vw', overflow: 'hidden' } : { minHeight: '100vh', width: '100vw' }}>
-      {!isLabActive ? (
-        <Pages.LandingPage onLaunch={() => setIsLabActive(true)} />
-      ) : (
-        labContent
-      )}
+    <div className="min-h-screen w-full relative text-foreground font-sans selection:bg-primary/30 overflow-hidden">
+      
+      {/* Global High-Fidelity Spaceship Nebula Image Background */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] ease-in-out"
+        style={{ 
+          backgroundImage: `url(${heroBg})`,
+          transform: isLabActive ? 'scale(1.05)' : (bgMode === 'HERO' ? 'scale(1.02)' : 'scale(1.05)')
+        }}
+      />
+      
+      {/* Global Dark gradient overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-[#05000a]/50 to-[#05000a]/90" />
+
+      {/* Global Animated Overlay */}
+      <NeuralBackground mode={isLabActive ? 'PLAYGROUND' : bgMode} />
+
+      <div className="relative z-10 h-full w-full">
+        {!isLabActive ? (
+          <Pages.LandingPage onLaunch={() => setIsLabActive(true)} bgMode={bgMode} setBgMode={setBgMode} />
+        ) : (
+          labContent
+        )}
+      </div>
     </div>
   );
 }

@@ -1,16 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Play, Database, Zap, AlertTriangle, Activity } from 'lucide-react';
 import memoraLogo from '../assets/memora-logo.png';
-import heroBg from '../assets/hero-bg.jpg';
-import { NeuralBackground } from '../components/NeuralBackground';
 
 interface LandingPageProps {
   onLaunch: () => void;
+  bgMode: 'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION';
+  setBgMode: (mode: 'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION') => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
-  const [bgMode, setBgMode] = useState<'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION'>('HERO');
-  
+export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch, setBgMode }) => {
   const heroRef = useRef<HTMLDivElement>(null);
   const playgroundRef = useRef<HTMLDivElement>(null);
   const fastWeightRef = useRef<HTMLDivElement>(null);
@@ -39,26 +37,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [setBgMode]);
 
   return (
-    <div className="min-h-screen bg-transparent text-foreground font-sans selection:bg-primary/30 relative">
-      
-      {/* High-Fidelity Spaceship Nebula Image Background */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] ease-in-out"
-        style={{ 
-          backgroundImage: `url(${heroBg})`,
-          // Add a subtle zoom breathing effect based on mode
-          transform: bgMode === 'HERO' ? 'scale(1.02)' : 'scale(1.05)'
-        }}
-      />
-      
-      {/* Dark gradient overlay for text readability when scrolling down */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-[#05000a]/50 to-[#05000a]/90" />
-
-      {/* Animated Overlay (Synaptic Firing / Energy Particles) */}
-      <NeuralBackground mode={bgMode} />
+    <div className="w-full relative">
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 md:px-12 py-6 z-50">
