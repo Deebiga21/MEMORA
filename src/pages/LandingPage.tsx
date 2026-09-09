@@ -78,8 +78,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-4 md:px-8 z-20">
         
-        {/* Glassmorphic Main Card */}
-        <div className="w-full max-w-2xl backdrop-blur-2xl bg-white/5 border border-white/20 p-10 md:p-12 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative mt-10 lg:mt-0">
+        {/* Unenclosed Hero Content */}
+        <div className="w-full max-w-2xl relative mt-10 lg:mt-0">
           
           <div className="relative z-10 flex flex-col space-y-6">
             <div className="flex flex-col items-center lg:items-end">
