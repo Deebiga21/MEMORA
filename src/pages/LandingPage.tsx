@@ -82,11 +82,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
         <div className="w-full max-w-2xl relative mt-10 lg:mt-0">
           
           <div className="relative z-10 flex flex-col space-y-6">
-            <div className="flex flex-col items-center lg:items-end">
-              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter text-white drop-shadow-2xl leading-none">
+            <div className="flex flex-col items-center text-center">
+              <h1 className="text-5xl md:text-7xl lg:text-[6rem] font-black tracking-tighter leading-none bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,255,255,0.6)] pb-2">
                 MEMORA-X
               </h1>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-cyan-50/90 tracking-tight drop-shadow-lg mt-2">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-cyan-50/90 tracking-tight drop-shadow-lg mt-0">
                 AI Memory Lab
               </h2>
             </div>
