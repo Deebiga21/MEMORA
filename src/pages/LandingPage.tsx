@@ -63,7 +63,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 md:px-12 py-6 z-50">
         <div className="flex items-center gap-2">
-          <img src={memoraLogo} alt="MEMORA" className="h-6 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] opacity-80" />
+          <img src={memoraLogo} alt="MEMORA" className="h-6 object-contain opacity-50 brightness-75 hover:opacity-100 hover:brightness-100 transition-all duration-300" />
         </div>
         <div className="flex items-center gap-6 text-sm font-medium">
           <button 
