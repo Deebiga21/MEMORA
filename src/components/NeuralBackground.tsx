@@ -88,7 +88,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     let mouseX = -1000;
     let mouseY = -1000;
 
-    const colors = ['#38bdf8', '#818cf8', '#22d3ee', '#c084fc']; // cyan, indigo, sky, purple
+    const colors = ['#38bdf8', '#818cf8', '#22d3ee', '#c084fc', '#a855f7', '#9333ea']; // cyan, indigo, sky, purple, violet, fuchsia
 
     const init = () => {
       width = window.innerWidth;
@@ -105,8 +105,8 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     };
 
     const draw = () => {
-      // Dark navy/near-black fluid background
-      ctx.fillStyle = 'rgba(5, 10, 24, 0.2)'; // Slight trail effect
+      // Dark violet/near-black fluid background
+      ctx.fillStyle = 'rgba(15, 5, 30, 0.2)'; // Slight trail effect
       ctx.fillRect(0, 0, width, height);
 
       // Connection threshold based on mode
@@ -238,7 +238,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: '#050a18' }}
+      style={{ background: '#0a0418' }}
     />
   );
 };

@@ -52,7 +52,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       <NeuralBackground mode={bgMode} />
       
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 py-6 z-50 bg-gradient-to-b from-[#050a18] to-transparent">
+      <nav className="fixed top-0 left-0 right-0 w-full flex justify-between items-center px-8 py-6 z-50 bg-gradient-to-b from-[#0a0418] to-transparent">
         <div className="flex items-center gap-2">
           <img src={memoraLogo} alt="MEMORA" className="h-8 object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]" />
         </div>
@@ -68,11 +68,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-8 z-10 pt-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050a18]/40 to-[#050a18]/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0418]/40 to-[#0a0418]/80 pointer-events-none" />
         
+        {/* Ambient Purple Glows */}
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-left space-y-8 relative z-20">
-            <div className="absolute -inset-10 bg-black/40 blur-3xl rounded-full -z-10" />
+            <div className="absolute -inset-10 bg-purple-900/20 blur-3xl rounded-full -z-10" />
             
             <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter leading-none text-white drop-shadow-lg">
               MEMORA-X
@@ -86,7 +90,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button 
                 onClick={onLaunch}
-                className="bg-primary hover:bg-primary/90 text-[#050a18] px-8 py-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(56,189,248,0.4)] hover:shadow-[0_0_50px_rgba(56,189,248,0.6)] hover:scale-105"
+                className="bg-primary hover:bg-primary/90 text-[#0a0418] px-8 py-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-[0_0_30px_rgba(56,189,248,0.4)] hover:shadow-[0_0_50px_rgba(56,189,248,0.6)] hover:scale-105"
               >
                 START EXPERIMENT <ArrowRight className="w-4 h-4" />
               </button>
