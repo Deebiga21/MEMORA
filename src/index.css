@@ -2,35 +2,35 @@
 
 @layer base {
   :root {
-    --background: 40 33% 96%; /* Cream */
-    --foreground: 25 10% 26%; /* Dark warm grey for text */
+    --background: 260 40% 4%; /* Deep Space Dark */
+    --foreground: 210 40% 98%; /* Bright White Text */
 
-    --card: 34 30% 91%; /* Light Beige */
-    --card-foreground: 25 10% 26%;
+    --card: 260 40% 12%; /* Very dark transparent card */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 34 30% 91%;
-    --popover-foreground: 25 10% 26%;
+    --popover: 260 40% 12%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 18 32% 59%; /* Terracotta */
-    --primary-foreground: 0 0% 100%;
+    --primary: 260 80% 75%; /* Bright Neon Purple */
+    --primary-foreground: 260 40% 10%;
 
-    --secondary: 31 22% 77%; /* Warm Taupe */
-    --secondary-foreground: 25 10% 26%;
+    --secondary: 260 30% 20%; /* Darker interactive elements */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 34 26% 89%; /* Lighter Beige for subtle backgrounds */
-    --muted-foreground: 30 9% 51%; /* Muted brownish grey */
+    --muted: 260 20% 15%; 
+    --muted-foreground: 260 20% 75%; /* Bright muted grey */
 
-    --accent: 30 11% 72%; /* Warm Grey */
-    --accent-foreground: 25 10% 26%;
+    --accent: 190 90% 65%; /* Bright Cyan */
+    --accent-foreground: 260 40% 10%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 80% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 31 22% 77%; /* Warm Taupe for borders */
-    --input: 31 22% 77%;
-    --ring: 18 32% 59%; /* Terracotta */
+    --border: 260 30% 25%; /* Subtle border */
+    --input: 260 30% 25%;
+    --ring: 260 80% 75%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 }
 
