@@ -14,59 +14,52 @@ class Particle {
   radius: number;
   baseAlpha: number;
   color: string;
-  targetX?: number;
-  targetY?: number;
+  isGiant: boolean;
 
-  constructor(width: number, height: number, color: string) {
+  constructor(width: number, height: number, color: string, isGiant: boolean = false) {
     this.x = Math.random() * width;
     this.y = Math.random() * height;
-    this.vx = (Math.random() - 0.5) * 0.5;
-    this.vy = (Math.random() - 0.5) * 0.5;
+    
+    // Giants move very slowly
+    const speedMult = isGiant ? 0.05 : 0.3;
+    this.vx = (Math.random() - 0.5) * speedMult;
+    this.vy = (Math.random() - 0.5) * speedMult;
     this.baseVx = this.vx;
     this.baseVy = this.vy;
-    this.radius = Math.random() * 1.5 + 0.5;
-    this.baseAlpha = Math.random() * 0.5 + 0.1;
+    
+    this.isGiant = isGiant;
+    this.radius = isGiant ? Math.random() * 15 + 25 : Math.random() * 2 + 1; // Giant neurons
+    this.baseAlpha = isGiant ? 0.9 : Math.random() * 0.4 + 0.1;
     this.color = color;
   }
 
   update(width: number, height: number, mode: string, mouseX: number, mouseY: number) {
-    // Mouse interaction
     const dx = mouseX - this.x;
     const dy = mouseY - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     
-    if (dist < 150) {
-      const force = (150 - dist) / 150;
-      this.vx -= (dx / dist) * force * 0.05;
-      this.vy -= (dy / dist) * force * 0.05;
+    if (dist < 200 && !this.isGiant) {
+      const force = (200 - dist) / 200;
+      this.vx -= (dx / dist) * force * 0.02;
+      this.vy -= (dy / dist) * force * 0.02;
     }
 
-    // Mode specific physics
-    if (mode === 'FAST_WEIGHT') {
-      this.x += this.vx * 2.5;
-      this.y += this.vy * 2.5;
-    } else if (mode === 'INTERFERENCE') {
-      this.x += this.vx * 1.5 + (Math.random() - 0.5) * 1.0;
-      this.y += this.vy * 1.5 + (Math.random() - 0.5) * 1.0;
+    if (mode === 'FAST_WEIGHT' && !this.isGiant) {
+      this.x += this.vx * 2.0;
+      this.y += this.vy * 2.0;
+    } else if (mode === 'INTERFERENCE' && !this.isGiant) {
+      this.x += this.vx * 1.5 + (Math.random() - 0.5) * 0.5;
+      this.y += this.vy * 1.5 + (Math.random() - 0.5) * 0.5;
     } else {
-      // Normal / HERO / PLAYGROUND / RETENTION
       this.x += this.vx;
       this.y += this.vy;
     }
 
-    // Friction to return to base velocity
     this.vx += (this.baseVx - this.vx) * 0.02;
     this.vy += (this.baseVy - this.vy) * 0.02;
 
-    // Bounce off edges
     if (this.x < 0 || this.x > width) this.vx *= -1;
     if (this.y < 0 || this.y > height) this.vy *= -1;
-    
-    // Wrap around to avoid clumps on edges
-    if (this.x < -50) this.x = width + 50;
-    if (this.x > width + 50) this.x = -50;
-    if (this.y < -50) this.y = height + 50;
-    if (this.y > height + 50) this.y = -50;
   }
 }
 
@@ -88,7 +81,7 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
     let mouseX = -1000;
     let mouseY = -1000;
 
-    const colors = ['#818cf8', '#c084fc', '#a855f7', '#9333ea', '#7e22ce', '#d8b4fe']; // cyan, indigo, sky, purple, violet, fuchsia
+    const colors = ['#818cf8', '#c084fc', '#a855f7', '#9333ea', '#22d3ee', '#38bdf8']; 
 
     const init = () => {
       width = window.innerWidth;
@@ -96,23 +89,29 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
       canvas.width = width;
       canvas.height = height;
       
-      const particleCount = Math.min(Math.floor((width * height) / 8000), 200); // Scale with screen
       particles = [];
+      // Create Giants (the big organic neurons)
+      for (let i = 0; i < 6; i++) {
+        // mostly cyan and bright purple
+        const color = i % 2 === 0 ? '#22d3ee' : '#c084fc'; 
+        particles.push(new Particle(width, height, color, true));
+      }
+      // Create Normals
+      const particleCount = Math.min(Math.floor((width * height) / 7000), 120);
       for (let i = 0; i < particleCount; i++) {
         const color = colors[Math.floor(Math.random() * colors.length)];
-        particles.push(new Particle(width, height, color));
+        particles.push(new Particle(width, height, color, false));
       }
     };
 
     const draw = () => {
-      // Dark violet/near-black fluid background
-      ctx.fillStyle = 'rgba(8, 0, 15, 0.2)'; // Slight trail effect
+      // Deep space clear
+      ctx.fillStyle = 'rgba(5, 2, 12, 0.3)'; // Dark cosmic background
       ctx.fillRect(0, 0, width, height);
 
-      // Connection threshold based on mode
-      let connectionDistance = 120;
-      if (mode === 'PLAYGROUND') connectionDistance = 160;
-      if (mode === 'FAST_WEIGHT') connectionDistance = 140;
+      let connectionDistance = 180;
+      if (mode === 'PLAYGROUND') connectionDistance = 220;
+      if (mode === 'FAST_WEIGHT') connectionDistance = 200;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -125,81 +124,66 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
           const dy = p.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          // Mouse dist for local brightening
-          const mDx = mouseX - ((p.x + p2.x) / 2);
-          const mDy = mouseY - ((p.y + p2.y) / 2);
-          const mDist = Math.sqrt(mDx * mDx + mDy * mDy);
-          const mouseGlow = mDist < 200 ? (200 - mDist) / 200 : 0;
+          const maxDist = p.isGiant || p2.isGiant ? connectionDistance * 2.0 : connectionDistance;
 
-          if (dist < connectionDistance) {
-            let alpha = (1 - dist / connectionDistance) * 0.3;
-            alpha += mouseGlow * 0.4; // Brighter near mouse
-
-            let strokeStyle = `rgba(168, 85, 247, ${alpha})`; // Default blue
-
-            if (mode === 'FAST_WEIGHT') {
-              strokeStyle = `rgba(34, 211, 238, ${alpha * 1.5})`; // Cyan brighter
-            } else if (mode === 'INTERFERENCE') {
-              if (Math.random() > 0.95) {
-                strokeStyle = `rgba(250, 204, 21, ${alpha * 2})`; // Yellow flashes
-              } else if (Math.random() > 0.98) {
-                strokeStyle = `rgba(248, 113, 113, ${alpha * 2})`; // Red flashes
-              }
-            } else if (mode === 'RETENTION') {
-              const pulse = Math.sin(Date.now() / 500) * 0.5 + 0.5;
-              strokeStyle = `rgba(129, 140, 248, ${alpha * (0.5 + pulse)})`; // Pulsing indigo
+          if (dist < maxDist) {
+            let alpha = (1 - dist / maxDist) * 0.5;
+            
+            let strokeStyle = `rgba(168, 85, 247, ${alpha})`; // purple baseline
+            if (p.isGiant && p2.isGiant) {
+              strokeStyle = `rgba(34, 211, 238, ${alpha * 1.5})`; // thick cyan between giants
+            } else if (p.isGiant || p2.isGiant) {
+              strokeStyle = `rgba(192, 132, 252, ${alpha * 1.2})`; // light purple to small nodes
             }
 
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
-            // Bend towards mouse slightly if close
-            if (mouseGlow > 0 && mode !== 'INTERFERENCE') {
-               const cpX = (p.x + p2.x) / 2 + (mouseX - (p.x + p2.x) / 2) * 0.1;
-               const cpY = (p.y + p2.y) / 2 + (mouseY - (p.y + p2.y) / 2) * 0.1;
+            
+            // Organic, web-like curves
+            if (p.isGiant || p2.isGiant) {
+               const cpX = (p.x + p2.x) / 2 + (p.y - p2.y) * 0.15;
+               const cpY = (p.y + p2.y) / 2 + (p2.x - p.x) * 0.15;
                ctx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
             } else {
                ctx.lineTo(p2.x, p2.y);
             }
+
             ctx.strokeStyle = strokeStyle;
-            ctx.lineWidth = mouseGlow > 0 ? 1.5 : 0.8;
+            ctx.lineWidth = (p.isGiant && p2.isGiant) ? 3.0 : (p.isGiant || p2.isGiant ? 1.5 : 0.6);
             ctx.stroke();
           }
         }
 
         // Draw particle
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * (mode === 'FAST_WEIGHT' ? 1.5 : 1), 0, Math.PI * 2);
-        const pMDx = mouseX - p.x;
-        const pMDy = mouseY - p.y;
-        const pMDist = Math.sqrt(pMDx * pMDx + pMDy * pMDy);
-        const pGlow = pMDist < 150 ? 0.5 : 0;
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         
         ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.baseAlpha + pGlow;
-        if (mode === 'INTERFERENCE' && Math.random() > 0.95) {
-            ctx.fillStyle = '#facc15';
-        }
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
+        ctx.globalAlpha = p.baseAlpha;
         
-        // Add subtle bloom/glow natively
-        if (pGlow > 0.2 || mode === 'FAST_WEIGHT') {
-            ctx.shadowBlur = 10;
+        if (p.isGiant) {
+            // Massive bloom for giants
+            ctx.shadowBlur = 50;
             ctx.shadowColor = p.color;
             ctx.fill();
             ctx.shadowBlur = 0;
+            
+            // Bright Inner core
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 1.0;
+            ctx.fill();
+        } else {
+            ctx.fill();
+            if (mode === 'FAST_WEIGHT') {
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
         }
-      }
-
-      // Draw soft ripple at mouse
-      if (mouseX > 0 && mouseY > 0) {
-        ctx.beginPath();
-        ctx.arc(mouseX, mouseY, 150, 0, Math.PI * 2);
-        const gradient = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 150);
-        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.05)');
-        gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fill();
+        ctx.globalAlpha = 1.0;
       }
 
       animationFrameId = requestAnimationFrame(draw);
@@ -235,10 +219,14 @@ export const NeuralBackground: React.FC<NeuralBackgroundProps> = ({ mode }) => {
   }, [mode]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: '#05000a' }}
-    />
+    <div className="fixed inset-0 z-0 bg-[#05010a] overflow-hidden pointer-events-none">
+      {/* Deep Space CSS Nebula Layer */}
+      <div className="absolute inset-0 mix-blend-screen opacity-50">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/40 blur-[150px] rounded-full animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-cyan-900/30 blur-[150px] rounded-full animate-pulse" style={{ animationDuration: '12s' }} />
+        <div className="absolute top-[30%] left-[20%] w-[50%] h-[50%] bg-indigo-900/30 blur-[150px] rounded-full animate-pulse" style={{ animationDuration: '10s' }} />
+      </div>
+      <canvas ref={canvasRef} className="absolute inset-0" />
+    </div>
   );
 };
