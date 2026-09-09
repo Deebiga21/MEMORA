@@ -4,7 +4,6 @@ import memoraLogo from '../assets/memora-logo.png';
 
 interface LandingPageProps {
   onLaunch: () => void;
-  bgMode: 'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION';
   setBgMode: (mode: 'HERO' | 'PLAYGROUND' | 'FAST_WEIGHT' | 'INTERFERENCE' | 'RETENTION') => void;
 }
 

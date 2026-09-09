@@ -55,7 +55,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen w-full relative text-foreground font-sans selection:bg-primary/30 overflow-hidden">
+    <div className={`${isLabActive ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'} w-full relative text-foreground font-sans selection:bg-primary/30`}>
       
       {/* Global High-Fidelity Spaceship Nebula Image Background */}
       <div 
@@ -72,9 +72,9 @@ export default function App() {
       {/* Global Animated Overlay */}
       <NeuralBackground mode={isLabActive ? 'PLAYGROUND' : bgMode} />
 
-      <div className="relative z-10 h-full w-full">
+      <div className={`relative z-10 w-full ${isLabActive ? 'h-full' : ''}`}>
         {!isLabActive ? (
-          <Pages.LandingPage onLaunch={() => setIsLabActive(true)} bgMode={bgMode} setBgMode={setBgMode} />
+          <Pages.LandingPage onLaunch={() => setIsLabActive(true)} setBgMode={setBgMode} />
         ) : (
           labContent
         )}
