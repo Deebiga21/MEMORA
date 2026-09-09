@@ -1,138 +1,83 @@
 import React, { useState } from 'react';
 import { useExperiment } from '../context/ExperimentContext';
-import { Activity, Edit3, Trash2, Shield, Zap, Search } from 'lucide-react';
+import { Scissors, Edit3, Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
 
 export const MemorySurgery: React.FC = () => {
-  const { trainBase, eraseMemory, updateTestTime, queryModel, historyLog, predictions } = useExperiment();
+  const { state, trainBase, updateTestTime, eraseMemory, interfere } = useExperiment();
   
-  const [writeX, setWriteX] = useState('');
-  const [writeY, setWriteY] = useState('');
+  const [cue, setCue] = useState('');
+  const [target, setTarget] = useState('');
   
-  const [interfereX, setInterfereX] = useState('');
-  const [interfereY, setInterfereY] = useState('');
-
-  const [query, setQuery] = useState('');
-
-  const handleAction = (type: 'write' | 'erase' | 'interfere' | 'query') => {
-    switch (type) {
-      case 'write':
-        if (writeX && writeY) trainBase(writeX.toUpperCase(), writeY.toUpperCase());
-        break;
-      case 'erase':
-        if (writeX && writeY) eraseMemory(writeX.toUpperCase(), writeY.toUpperCase());
-        break;
-      case 'interfere':
-        if (interfereX && interfereY) updateTestTime(interfereX.toUpperCase(), interfereY.toUpperCase());
-        break;
-      case 'query':
-        if (query) queryModel(query.toUpperCase());
-        break;
-    }
-  };
+  if (!state) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-          <Activity className="w-8 h-8" /> MEMORY SURGERY
-        </h1>
-        <p className="text-muted-foreground mt-2">"Directly manipulate the model's memory and observe what changes."</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <h1 className="text-3xl font-bold tracking-tight text-primary">MEMORY SURGERY</h1>
+      <p className="text-muted-foreground text-lg">"What happens if I directly manipulate memory?"</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Operations */}
-        <div className="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* WRITE */}
-          <div className="bg-card border border-border p-5 rounded-xl shadow-lg relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Edit3 className="w-24 h-24" />
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-lg space-y-4">
+             <div className="flex items-center gap-2 border-b border-border pb-4">
+              <Scissors className="text-red-400" />
+              <h2 className="text-xl font-semibold">Operations</h2>
             </div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Edit3 className="w-5 h-5 text-blue-400" /> WRITE</h3>
-            <div className="space-y-3 relative z-10">
-              <input type="text" placeholder="Concept (e.g. APPLE)" value={writeX} onChange={e=>setWriteX(e.target.value)} className="w-full bg-background border border-border rounded px-3 py-2 text-sm" />
-              <input type="text" placeholder="Association (e.g. FRUIT)" value={writeY} onChange={e=>setWriteY(e.target.value)} className="w-full bg-background border border-border rounded px-3 py-2 text-sm" />
-              <div className="flex gap-2">
-                <button onClick={() => handleAction('write')} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded text-sm font-bold transition-colors">ADD TO SLOW MEMORY</button>
-                <button onClick={() => handleAction('erase')} className="bg-destructive hover:bg-destructive/80 text-white px-3 py-2 rounded text-sm transition-colors" title="Erase Memory"><Trash2 className="w-4 h-4" /></button>
-              </div>
+            
+            <input 
+                type="text" value={cue} onChange={e => setCue(e.target.value.toUpperCase())}
+                placeholder="CUE (e.g. CAT)" className="w-full bg-background border border-border rounded-md px-3 py-2"
+            />
+            <input 
+                type="text" value={target} onChange={e => setTarget(e.target.value.toUpperCase())}
+                placeholder="TARGET (e.g. WILD)" className="w-full bg-background border border-border rounded-md px-3 py-2"
+            />
+
+            <div className="grid grid-cols-1 gap-2 pt-4">
+              <button onClick={() => trainBase(cue, target)} className="flex items-center gap-2 bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-4 py-2 rounded text-sm transition-colors">
+                <PlusCircle className="w-4 h-4"/> WRITE (Base)
+              </button>
+              <button onClick={() => updateTestTime(cue, target)} className="flex items-center gap-2 bg-green-500/20 hover:bg-green-500/40 text-green-400 px-4 py-2 rounded text-sm transition-colors">
+                <Edit3 className="w-4 h-4"/> UPDATE (Fast)
+              </button>
+              <button onClick={() => eraseMemory(cue, target)} className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 px-4 py-2 rounded text-sm transition-colors">
+                <Trash2 className="w-4 h-4"/> ERASE
+              </button>
+              <button onClick={() => interfere(cue, target)} className="flex items-center gap-2 bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-400 px-4 py-2 rounded text-sm transition-colors">
+                <AlertTriangle className="w-4 h-4"/> INTERFERE
+              </button>
             </div>
           </div>
-
-          {/* INTERFERE */}
-          <div className="bg-card border border-border p-5 rounded-xl shadow-lg relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Zap className="w-24 h-24" />
-            </div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Zap className="w-5 h-5 text-yellow-500" /> INTERFERE</h3>
-            <div className="space-y-3 relative z-10">
-              <input type="text" placeholder="Concept (e.g. CAT)" value={interfereX} onChange={e=>setInterfereX(e.target.value)} className="w-full bg-background border border-border rounded px-3 py-2 text-sm" />
-              <input type="text" placeholder="Conflict (e.g. WILD)" value={interfereY} onChange={e=>setInterfereY(e.target.value)} className="w-full bg-background border border-border rounded px-3 py-2 text-sm" />
-              <button onClick={() => handleAction('interfere')} className="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded text-sm font-bold transition-colors">TEST-TIME UPDATE</button>
-            </div>
-          </div>
-
-          {/* QUERY */}
-          <div className="bg-card border border-border p-5 rounded-xl shadow-lg relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Search className="w-24 h-24" />
-            </div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Search className="w-5 h-5 text-green-400" /> QUERY</h3>
-            <div className="space-y-3 relative z-10 flex">
-              <input type="text" placeholder="Query..." value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter' && handleAction('query')} className="flex-1 bg-background border border-border rounded-l px-3 py-2 text-sm" />
-              <button onClick={() => handleAction('query')} className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-r font-bold transition-colors"><Search className="w-4 h-4" /></button>
-            </div>
-            {predictions.length > 0 && (
-              <div className="mt-4 p-3 bg-background border border-border rounded relative z-10">
-                <span className="text-xs text-muted-foreground uppercase">Top Result</span>
-                <div className="font-bold text-lg text-primary">{predictions[0].word} <span className="text-sm font-normal text-muted-foreground">({predictions[0].confidence.toFixed(2)})</span></div>
-              </div>
-            )}
-          </div>
-
-          {/* FREEZE (Conceptual) */}
-          <div className="bg-card border border-border p-5 rounded-xl shadow-lg relative overflow-hidden group opacity-70">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Shield className="w-24 h-24" />
-            </div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Shield className="w-5 h-5 text-muted-foreground" /> FREEZE</h3>
-            <div className="space-y-3 relative z-10">
-              <p className="text-sm text-muted-foreground">Prevent further test-time updates from modifying the state.</p>
-              <button disabled className="w-full bg-muted text-muted-foreground py-2 rounded text-sm font-bold cursor-not-allowed border border-border">FREEZE MEMORY</button>
-            </div>
-          </div>
-
         </div>
 
-        {/* Action Log */}
-        <div className="col-span-1 bg-card border border-border p-5 rounded-xl shadow-lg flex flex-col h-full max-h-[600px]">
-          <h3 className="font-bold text-lg mb-4 border-b border-border pb-2">Action Log</h3>
-          <div className="flex-1 overflow-y-auto space-y-2 text-xs font-mono text-muted-foreground pr-2 custom-scrollbar">
-            {historyLog.length === 0 && <span className="opacity-50">No actions yet.</span>}
-            {[...historyLog].reverse().map((log, i) => {
-              const num = historyLog.length - i;
-              const isQuery = log.includes('Queried');
-              const isUpdate = log.includes('Update');
-              const isErase = log.includes('Erase');
-              const isSystem = log.includes('SYSTEM');
-              return (
-                <div key={i} className="flex gap-3 py-1 border-b border-border/30 last:border-0">
-                  <span className="text-primary/50 shrink-0">{num.toString().padStart(2, '0')}</span>
-                  <span className={
-                    isSystem ? "text-accent" :
-                    isQuery ? "text-green-300" : 
-                    isUpdate ? "text-yellow-300" : 
-                    isErase ? "text-destructive" : "text-blue-300"
-                  }>
-                    {log}
-                  </span>
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold border-b border-border pb-4 mb-4">Patient State (Base Memory)</h2>
+            <div className="flex flex-wrap gap-2">
+              {state.base_memory.map((m, i) => (
+                <div key={i} className="px-3 py-2 bg-secondary rounded flex gap-4 items-center">
+                  <span className="font-bold">{m.cue}</span>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-primary">{m.target}</span>
                 </div>
-              );
-            })}
+              ))}
+              {state.base_memory.length === 0 && <span className="text-muted-foreground italic">No base memories.</span>}
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold border-b border-border pb-4 mb-4">Test-Time State (Fast Memory)</h2>
+            <div className="flex flex-wrap gap-2">
+              {state.test_memory.map((m, i) => (
+                <div key={i} className="px-3 py-2 bg-primary/20 border border-primary/30 rounded flex gap-4 items-center">
+                  <span className="font-bold">{m.cue}</span>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-primary">{m.target}</span>
+                </div>
+              ))}
+              {state.test_memory.length === 0 && <span className="text-muted-foreground italic">No fast memory updates.</span>}
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );

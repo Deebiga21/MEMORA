@@ -1,99 +1,98 @@
 import React, { useState } from 'react';
 import { useExperiment } from '../context/ExperimentContext';
-import { Layers, Network, Grid3X3 } from 'lucide-react';
-import { ForceGraphVisualizer } from '../components/ForceGraphVisualizer';
-import { MemoryMapVisualizer } from '../components/MemoryMapVisualizer';
+import { Network, Grid, Clock } from 'lucide-react';
 
 export const InternalMemoryMap: React.FC = () => {
-  const { vocab, engine, dataset, historyLog } = useExperiment();
-  const [viewMode, setViewMode] = useState<'NETWORK' | 'MATRIX'>('NETWORK');
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const { state } = useExperiment();
+  const [view, setView] = useState<'NETWORK' | 'MATRIX' | 'TIMELINE'>('NETWORK');
+
+  if (!state) return null;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
+    <div className="space-y-6 animate-in fade-in duration-500 flex flex-col h-full">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-            <Layers className="w-8 h-8" /> INTERNAL MEMORY STATE
-          </h1>
-          <p className="text-muted-foreground mt-2">"Visualize the abstract representations and association strengths."</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">INTERNAL MEMORY MAP</h1>
+          <p className="text-muted-foreground text-lg">What is changing inside memory?</p>
         </div>
         
-        <div className="flex bg-background border border-border rounded-lg overflow-hidden">
-          <button 
-            onClick={() => setViewMode('NETWORK')}
-            className={`px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors ${viewMode === 'NETWORK' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-          >
-            <Network className="w-4 h-4" /> NETWORK VIEW
+        <div className="flex bg-background border border-border rounded-lg p-1">
+          <button onClick={() => setView('NETWORK')} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'NETWORK' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+            <Network className="w-4 h-4" /> NETWORK
           </button>
-          <button 
-            onClick={() => setViewMode('MATRIX')}
-            className={`px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors ${viewMode === 'MATRIX' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground'}`}
-          >
-            <Grid3X3 className="w-4 h-4" /> MATRIX VIEW
+          <button onClick={() => setView('MATRIX')} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'MATRIX' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+            <Grid className="w-4 h-4" /> MATRIX
+          </button>
+          <button onClick={() => setView('TIMELINE')} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'TIMELINE' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+            <Clock className="w-4 h-4" /> TIMELINE
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="bg-card border border-border rounded-xl shadow-lg flex-1 min-h-[500px] flex items-center justify-center relative overflow-hidden">
         
-        {/* Main Visualizer */}
-        <div className="lg:col-span-3 bg-card border border-border rounded-xl shadow-lg h-[600px] flex items-center justify-center relative overflow-hidden">
-          {/* We wrap the existing visualizers which assume full space */}
-          <div className="absolute inset-4 rounded border border-border/30 bg-background/50 pointer-events-auto">
-            {viewMode === 'NETWORK' ? (
-              <ForceGraphVisualizer size={vocab.size} W={engine.W} S={engine.S} words={dataset.words} />
-            ) : (
-              <MemoryMapVisualizer size={vocab.size} W={engine.W} S={engine.S} words={dataset.words} />
-            )}
+        {view === 'NETWORK' && (
+          <div className="text-center">
+             <div className="w-[500px] h-[300px] relative">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-primary rounded-full flex items-center justify-center font-bold text-sm shadow-[0_0_20px_rgba(var(--primary),0.5)] z-10">CAT</div>
+               {state.base_memory.map((m, i) => (
+                 <div key={`b-${i}`} className="absolute top-[20%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-secondary rounded-full flex items-center justify-center font-bold text-xs border-2 border-primary">
+                   {m.target}
+                 </div>
+               ))}
+               {state.test_memory.map((m, i) => {
+                 const angle = (i * 45) * (Math.PI / 180);
+                 const x = 50 + Math.cos(angle) * 35;
+                 const y = 50 + Math.sin(angle) * 35;
+                 return (
+                   <div key={`t-${i}`} className="absolute w-20 h-20 bg-card rounded-full flex items-center justify-center font-bold text-xs border border-primary/50 text-primary" style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
+                     {m.target}
+                   </div>
+                 );
+               })}
+               <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10">
+                 <line x1="50%" y1="50%" x2="80%" y2="20%" stroke="hsl(var(--primary))" strokeWidth="4" opacity="0.6" />
+                 {state.test_memory.map((_, i) => {
+                   const angle = (i * 45) * (Math.PI / 180);
+                   return <line key={i} x1="50%" y1="50%" x2={`${50 + Math.cos(angle)*35}%`} y2={`${50 + Math.sin(angle)*35}%`} stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="4 4" opacity="0.8" />;
+                 })}
+               </svg>
+             </div>
+             <p className="text-muted-foreground text-sm mt-8">Conceptual Graph Representation. Node edges represent strength.</p>
           </div>
-          <div className="absolute top-6 left-6 pointer-events-none">
-            <h3 className="font-bold text-lg text-foreground/50">{viewMode}</h3>
-          </div>
-        </div>
+        )}
 
-        {/* Node Details Panel */}
-        <div className="lg:col-span-1 bg-card border border-border rounded-xl p-5 shadow-lg flex flex-col gap-4">
-          <h3 className="font-bold border-b border-border pb-2 text-primary">Node Details</h3>
-          
-          <div className="text-sm text-muted-foreground italic mb-2">
-            (The ForceGraph is interactive. Click nodes in Network View to see details if supported by the visualizer, otherwise select from below.)
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {dataset.words.map(w => (
-              <button 
-                key={w} 
-                onClick={() => setSelectedNode(w)}
-                className={`text-xs py-1 px-2 rounded border transition-colors ${selectedNode === w ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:border-primary/50'}`}
-              >
-                {w}
-              </button>
-            ))}
-          </div>
-
-          {selectedNode ? (
-            <div className="bg-background border border-border rounded p-4 flex-1 space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Concept</p>
-                <p className="text-xl font-bold text-primary">{selectedNode}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Update Count</p>
-                <p className="font-mono">{historyLog.filter(l => l.includes(selectedNode)).length}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase">Last Modified</p>
-                <p className="font-mono text-xs">{historyLog.find(l => l.includes(selectedNode)) || 'Never'}</p>
-              </div>
+        {view === 'MATRIX' && (
+          <div className="text-center p-8 w-full h-full flex flex-col items-center justify-center">
+            <div className="grid grid-cols-12 gap-1 w-full max-w-md aspect-square mb-4">
+              {Array(144).fill(0).map((_, i) => {
+                const isBase = i % 13 === 0 && state.base_memory.length > 0;
+                const isFast = i % 7 === 0 && state.test_memory.length > 0;
+                const bg = isBase ? 'bg-primary' : isFast ? 'bg-blue-400' : 'bg-secondary';
+                const opacity = Math.max(0.1, Math.random());
+                return <div key={i} className={`w-full h-full rounded-sm ${bg}`} style={{ opacity: opacity }}></div>;
+              })}
             </div>
-          ) : (
-            <div className="bg-background border border-border rounded p-4 flex-1 flex items-center justify-center text-center text-muted-foreground text-sm">
-              Select a node to view its memory associations.
-            </div>
-          )}
+            <p className="text-muted-foreground text-sm">Memory × Memory weight matrix representation</p>
+          </div>
+        )}
 
-        </div>
+        {view === 'TIMELINE' && (
+          <div className="w-full h-full p-8 overflow-y-auto">
+            <div className="space-y-4">
+              {state.action_log.map((log, i) => (
+                <div key={i} className="flex gap-4 items-start">
+                  <div className="w-16 text-xs text-muted-foreground text-right pt-1">Step {log.step}</div>
+                  <div className="w-3 h-3 rounded-full bg-primary mt-1 shrink-0"></div>
+                  <div className="bg-background border border-border p-3 rounded flex-1">
+                    <div className="font-bold text-sm">{log.action}</div>
+                    <div className="text-muted-foreground text-xs">{log.details}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

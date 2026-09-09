@@ -3,13 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any, Tuple
-from memory import FastWeightMemory
+from typing import List, Dict, Any, Optional
+from memory import engine
 import os
 
 app = FastAPI(title="MEMORA-X Backend API")
 
-# Allow CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,16 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize a global memory instance with dimension 128
-memory_instance = FastWeightMemory(dim=128)
-
-class StoreRequest(BaseModel):
+class PairRequest(BaseModel):
     cue: str
     target: str
 
-class RetrieveRequest(BaseModel):
-    query: str
-    top_k: int = 3
+class QueryRequest(BaseModel):
+    cue: str
+
+class ParamRequest(BaseModel):
+    lambda_val: float
+    eta: float
 
 class EmailRequest(BaseModel):
     email: str
@@ -40,45 +39,57 @@ def subscribe(req: EmailRequest):
         emails_db.append(req.email)
     return {"status": "success", "message": "Email recorded", "total": len(emails_db)}
 
+@app.get("/api/experiment/state")
+def get_state():
+    return engine.get_state()
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the MEMORA-X API"}
+@app.post("/api/experiment/learn")
+def learn_base(req: PairRequest):
+    engine.learn_base(req.cue, req.target)
+    return engine.get_state()
 
-@app.post("/api/store")
-def store(req: StoreRequest):
-    meta = memory_instance.store(req.cue, req.target)
-    return {"status": "success", "meta": meta}
+@app.post("/api/experiment/update")
+def update_fast(req: PairRequest):
+    engine.update_fast(req.cue, req.target)
+    return engine.get_state()
 
-@app.post("/api/retrieve")
-def retrieve(req: RetrieveRequest):
-    results = memory_instance.retrieve_text(req.query, req.top_k)
-    # Convert list of tuples to list of dicts for JSON serialization
-    formatted_results = [{"target": r[0], "confidence": r[1]} for r in results]
-    return {"status": "success", "results": formatted_results}
+@app.post("/api/experiment/interfere")
+def interfere(req: PairRequest):
+    engine.interfere(req.cue, req.target)
+    return engine.get_state()
 
-@app.get("/api/status")
-def status():
-    return {
-        "status": "success",
-        "memory_load": memory_instance.memory_load(),
-        "capacity_ratio": memory_instance.capacity_ratio(),
-        "history": memory_instance.update_history
-    }
+@app.post("/api/experiment/erase")
+def erase(req: PairRequest):
+    is_base = any(m["cue"] == req.cue and m["target"] == req.target for m in engine.base_memory)
+    engine.erase_memory(req.cue, req.target, is_base)
+    return engine.get_state()
 
-@app.post("/api/reset")
-def reset():
-    memory_instance.reset()
-    return {"status": "success", "message": "Memory reset"}
+@app.post("/api/experiment/query")
+def query_memory(req: QueryRequest):
+    results = engine.query(req.cue)
+    state = engine.get_state()
+    return {"results": results, "state": state}
 
-# Serve frontend static files if they exist
+@app.post("/api/experiment/params")
+def update_params(req: ParamRequest):
+    engine.set_parameters(req.lambda_val, req.eta)
+    return engine.get_state()
+
+@app.post("/api/experiment/reset")
+def reset_experiment():
+    engine.reset_experiment()
+    return engine.get_state()
+
+@app.post("/api/experiment/reset_fast")
+def reset_fast():
+    engine.reset_fast()
+    return engine.get_state()
+
 if os.path.exists("dist"):
     app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
     
     @app.get("/{catchall:path}")
     def serve_frontend(catchall: str):
-        # Don't intercept API routes
         if catchall.startswith("api/"):
             raise HTTPException(status_code=404, detail="API route not found")
         return FileResponse("dist/index.html")
-

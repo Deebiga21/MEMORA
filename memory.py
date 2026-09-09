@@ -1,230 +1,221 @@
-"""
-Fast-Weight Associative Memory — Educational Implementation
-for DataForge 2026: Pathway Track
-
-This is a TOY MODEL for educational purposes.
-It is NOT an official BDH or BDH-CQ implementation.
-"""
-
 import numpy as np
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Dict, Any
+import uuid
+import datetime
+import math
 
-
-class FastWeightMemory:
-    """
-    A fast-weight associative memory that stores key-value associations
-    in a matrix W updated via local learning rules.
-
-    Mathematical formulation:
-    - Storage: W_t = W_{t-1} + η * (v_t - W_{t-1} @ k_t) ⊗ k_t
-      (gradient descent on associative loss L = ½||v - Wk||²)
-    - Retrieval: v̂ = W @ softmax(β * K^T @ q)
-      (content-addressed via softmax attention over stored keys)
-
-    This is an explicit fast-weight model. BDH uses synaptic state σ 
-    (fast weights on edges). BDH-CQ uses recurrent state S_t.
-    All three achieve test-time adaptation without parameter updates.
-    """
-
-    def __init__(self, dim: int, eta: float = 0.3, beta: float = 15.0, 
-                 seed: int = 42):
-        """
-        Args:
-            dim: Dimensionality of key and value vectors.
-            eta: Learning rate for fast-weight updates (0 < η ≤ 1).
-            beta: Inverse temperature for softmax retrieval sharpness.
-            seed: Random seed for reproducible initializations.
-        """
+class ExperimentEngine:
+    def __init__(self, dim: int = 512, seed: int = 42):
         self.dim = dim
-        self.eta = eta
-        self.beta = beta
+        self.seed = seed
         self.rng = np.random.default_rng(seed)
+        
+        # Word -> Vector registry for exact decode
+        self.vocab_vectors: Dict[str, np.ndarray] = {}
+        
+        self.reset_experiment()
 
-        # Fast-weight matrix: the memory itself
-        self.W = np.zeros((dim, dim), dtype=np.float32)
+    def reset_experiment(self):
+        """Hard reset of the entire experiment state."""
+        self.experiment_id = f"EXP-{uuid.uuid4().hex[:6].upper()}"
+        self.W = np.zeros((self.dim, self.dim), dtype=np.float32) # Slow weights
+        self.S = np.zeros((self.dim, self.dim), dtype=np.float32) # Fast weights
+        
+        self.lambda_val = 0.5
+        self.eta = 0.5
+        
+        self.base_memory: List[Dict[str, str]] = []
+        self.test_memory: List[Dict[str, str]] = []
+        
+        self.action_log: List[Dict[str, Any]] = []
+        self.experiment_steps = 0
+        
+        self.old_memory_accuracy = 100.0
+        self.new_memory_accuracy = 0.0
+        self.failure_threshold = 70.0
+        
+        self.log_action("SYSTEM", "Experiment Engine Initialized")
 
-        # Stored keys and values for visualization and exact retrieval
-        self.keys: List[np.ndarray] = []
-        self.values: List[np.ndarray] = []
-        self.update_history: List[dict] = []
+    def reset_fast(self):
+        self.S = np.zeros((self.dim, self.dim), dtype=np.float32)
+        self.test_memory = []
+        self.experiment_steps += 1
+        self.log_action('RESET_FAST', 'Reset Fast Weights')
+        self._recalculate_metrics()
 
-    def _encode(self, text: str) -> np.ndarray:
-        """
-        Deterministic text-to-vector encoder.
-        Uses a hash-based random projection for reproducibility.
-        In a real system, this would be a pretrained embedding model.
-        """
-        # Hash the text to get a seed, then generate a random unit vector
-        hash_val = hash(text) % (2**31)
-        rng = np.random.default_rng(hash_val + 42)
-        vec = rng.standard_normal(self.dim).astype(np.float32)
-        vec /= (np.linalg.norm(vec) + 1e-8)
-        return vec
+    def log_action(self, action_type: str, details: str):
+        self.action_log.insert(0, {
+            "step": self.experiment_steps,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "action": action_type,
+            "details": details
+        })
 
-    def store(self, cue: str, target: str) -> dict:
-        """
-        Test-time associative update.
+    def _get_vector(self, word: str) -> np.ndarray:
+        word = word.strip().upper()
+        if word not in self.vocab_vectors:
+            # Generate deterministic pseudo-orthogonal vector for new words
+            hash_val = hash(word) % (2**31)
+            rng = np.random.default_rng(hash_val + self.seed)
+            vec = rng.standard_normal(self.dim).astype(np.float32)
+            vec /= (np.linalg.norm(vec) + 1e-8)
+            self.vocab_vectors[word] = vec
+        return self.vocab_vectors[word]
 
-        Computes prediction error and performs a rank-1 update to W.
-        This is the core "test-time adaptation" mechanism.
-
-        Args:
-            cue: The key/cue string (e.g., "CAT").
-            target: The value/target string (e.g., "ANIMAL").
-
-        Returns:
-            dict with update metadata for visualization.
-        """
-        k = self._encode(cue)
-        v = self._encode(target)
-
-        # Prediction before update
-        pred = self.W @ k
-        error = v - pred
-
-        # Fast-weight update: gradient descent on ½||v - Wk||²
-        # ∇_W L = -(v - Wk) ⊗ k = -error ⊗ k
-        # W_new = W - η * ∇_W L = W + η * error ⊗ k
-        delta_W = self.eta * np.outer(error, k)
-        self.W += delta_W
-
-        # Store for exact retrieval and visualization
-        self.keys.append(k)
-        self.values.append(v)
-
-        meta = {
-            "cue": cue,
-            "target": target,
-            "error_norm": float(np.linalg.norm(error)),
-            "delta_norm": float(np.linalg.norm(delta_W)),
-            "pred_cosine": float(cosine_sim(pred, v)),
-        }
-        self.update_history.append(meta)
-        return meta
-
-    def retrieve(self, query: str, return_details: bool = False):
-        """
-        Content-addressed retrieval via softmax attention over stored keys.
-
-        If no keys are stored, returns zero vector.
-
-        Args:
-            query: The query string.
-            return_details: If True, return attention weights and scores.
-
-        Returns:
-            Retrieved vector, or (vector, details_dict) if return_details.
-        """
-        q = self._encode(query)
-
-        if len(self.keys) == 0:
-            return (np.zeros(self.dim), {"attention": [], "scores": []}) if return_details else np.zeros(self.dim)
-
-        K = np.stack(self.keys)      # (N, d)
-        V = np.stack(self.values)    # (N, d)
-
-        # Compute similarity scores
-        scores = K @ q  # (N,)
-
-        # Softmax attention with temperature β
-        # Higher β → sharper attention (more selective)
-        # Lower β → smoother attention (more blended)
-        exp_scores = np.exp(self.beta * (scores - np.max(scores)))
-        attn = exp_scores / (exp_scores.sum() + 1e-10)
-
-        # Weighted combination of values
-        retrieved = attn @ V  # (d,)
-
-        if return_details:
-            return retrieved, {
-                "attention": attn.tolist(),
-                "scores": scores.tolist(),
-                "keys_text": [h["cue"] for h in self.update_history],
-                "values_text": [h["target"] for h in self.update_history],
-            }
-        return retrieved
-
-    def retrieve_text(self, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
-        """
-        Retrieve and decode back to text by finding nearest stored values.
-
-        Returns:
-            List of (candidate_text, confidence) tuples.
-        """
-        retrieved, details = self.retrieve(query, return_details=True)
-
-        if len(details["attention"]) == 0:
+    def _decode_vector(self, vec: np.ndarray, top_k: int = 5) -> List[Dict[str, Any]]:
+        if np.linalg.norm(vec) < 1e-8:
             return []
-
-        # Rank stored values by attention weight
-        ranked = sorted(
-            zip(details["keys_text"], details["values_text"], details["attention"]),
-            key=lambda x: x[2],
-            reverse=True,
-        )
-
-        # Return unique target texts with highest attention
-        seen = set()
+        
         results = []
-        for cue, target, weight in ranked:
-            if target not in seen:
-                seen.add(target)
-                results.append((target, float(weight)))
-            if len(results) >= top_k:
-                break
+        for word, v in self.vocab_vectors.items():
+            sim = float(np.dot(vec, v) / (np.linalg.norm(vec) * np.linalg.norm(v)))
+            # ReLU-like gating to remove negative noise
+            if sim > 0:
+                results.append({"word": word, "confidence": sim})
+        
+        results.sort(key=lambda x: x["confidence"], reverse=True)
+        return results[:top_k]
+
+    def learn_base(self, cue: str, target: str):
+        """Train the slow weights using Hebbian learning (outer product)."""
+        cue = cue.strip().upper()
+        target = target.strip().upper()
+        
+        k = self._get_vector(cue)
+        v = self._get_vector(target)
+        
+        self.W += np.outer(v, k)
+        
+        # Avoid duplicate base tracking
+        if not any(m["cue"] == cue and m["target"] == target for m in self.base_memory):
+            self.base_memory.append({"cue": cue, "target": target})
+            
+        self.experiment_steps += 1
+        self.log_action("LEARN_BASE", f"Base Association: [{cue}] -> [{target}]")
+        self._recalculate_metrics()
+
+    def update_fast(self, cue: str, target: str):
+        """Update fast weights using error-driven learning at test time."""
+        cue = cue.strip().upper()
+        target = target.strip().upper()
+        
+        k = self._get_vector(cue)
+        v_target = self._get_vector(target)
+        
+        # Forward pass
+        v_pred = (self.W + self.lambda_val * self.S) @ k
+        
+        # Error delta
+        error = v_target - v_pred
+        
+        # Fast weight update
+        self.S += self.eta * np.outer(error, k)
+        
+        self.test_memory.append({"cue": cue, "target": target})
+        self.experiment_steps += 1
+        self.log_action("UPDATE_FAST", f"Test-Time Update: [{cue}] -> [{target}]")
+        self._recalculate_metrics()
+
+    def interfere(self, cue: str, target: str):
+        """Alias for update_fast but explicitly logged as interference."""
+        self.update_fast(cue, target)
+        # Update the latest log to say INTERFERE
+        self.action_log[0]["action"] = "INTERFERE"
+        self.action_log[0]["details"] = f"Injected Conflict: [{cue}] -> [{target}]"
+
+    def erase_memory(self, cue: str, target: str, is_base: bool = True):
+        cue = cue.strip().upper()
+        target = target.strip().upper()
+        k = self._get_vector(cue)
+        v = self._get_vector(target)
+        
+        if is_base:
+            self.W -= np.outer(v, k)
+            self.base_memory = [m for m in self.base_memory if not (m["cue"] == cue and m["target"] == target)]
+            self.log_action("ERASE_BASE", f"Removed Base: [{cue}] -> [{target}]")
+        else:
+            self.S -= self.eta * np.outer(v, k) # Approximate reversal
+            self.log_action("ERASE_FAST", f"Removed Fast: [{cue}] -> [{target}]")
+            
+        self.experiment_steps += 1
+        self._recalculate_metrics()
+
+    def query(self, cue: str) -> List[Dict[str, Any]]:
+        cue = cue.strip().upper()
+        k = self._get_vector(cue)
+        
+        v_slow = self.W @ k
+        v_fast = self.S @ k
+        v_pred = v_slow + self.lambda_val * v_fast
+        
+        results = self._decode_vector(v_pred)
+        
+        top_word = results[0]["word"] if results else "NONE"
+        self.experiment_steps += 1
+        self.log_action("QUERY", f"Queried [{cue}] -> Top Result: [{top_word}]")
+        
         return results
 
-    def interference_score(self, cue: str, expected_target: str) -> float:
-        """
-        Measure retrieval interference for a specific cue.
+    def query_internal(self, cue: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Returns raw vectors for visualization (slow, fast, combined)"""
+        k = self._get_vector(cue.strip().upper())
+        v_slow = self.W @ k
+        v_fast = self.lambda_val * (self.S @ k)
+        v_combined = v_slow + v_fast
+        return v_slow, v_fast, v_combined
 
-        Returns 1 - cosine_similarity(retrieved, expected).
-        0 = perfect retrieval, 1 = completely wrong.
-        """
-        retrieved = self.retrieve(cue)
-        expected = self._encode(expected_target)
-        return 1.0 - cosine_sim(retrieved, expected)
+    def _recalculate_metrics(self):
+        """Recalculate retention and acquisition across all tracked memories."""
+        # 1. Old Memory Retention
+        if not self.base_memory:
+            self.old_memory_accuracy = 100.0
+        else:
+            correct = 0
+            for m in self.base_memory:
+                k = self._get_vector(m["cue"])
+                v_pred = (self.W + self.lambda_val * self.S) @ k
+                results = self._decode_vector(v_pred, top_k=1)
+                if results and results[0]["word"] == m["target"]:
+                    correct += 1
+            self.old_memory_accuracy = (correct / len(self.base_memory)) * 100.0
 
-    def memory_load(self) -> int:
-        """Number of stored associations."""
-        return len(self.keys)
+        # 2. New Memory Acquisition
+        if not self.test_memory:
+            self.new_memory_accuracy = 0.0
+        else:
+            correct = 0
+            # Only check unique most recent test updates
+            latest_tests = {}
+            for m in self.test_memory:
+                latest_tests[m["cue"]] = m["target"]
+                
+            for cue, target in latest_tests.items():
+                k = self._get_vector(cue)
+                v_pred = (self.W + self.lambda_val * self.S) @ k
+                results = self._decode_vector(v_pred, top_k=1)
+                if results and results[0]["word"] == target:
+                    correct += 1
+            self.new_memory_accuracy = (correct / len(latest_tests)) * 100.0
 
-    def capacity_ratio(self) -> float:
-        """Ratio of stored associations to vector dimension."""
-        return len(self.keys) / self.dim
+    def set_parameters(self, lambda_val: float, eta: float):
+        self.lambda_val = lambda_val
+        self.eta = eta
+        self.experiment_steps += 1
+        self.log_action("UPDATE_PARAMS", f"Set lambda={lambda_val:.2f}, eta={eta:.2f}")
+        self._recalculate_metrics()
 
-    def reset(self):
-        """Clear all memory."""
-        self.W = np.zeros((self.dim, self.dim), dtype=np.float32)
-        self.keys = []
-        self.values = []
-        self.update_history = []
+    def get_state(self) -> Dict[str, Any]:
+        return {
+            "experiment_id": self.experiment_id,
+            "lambda_val": self.lambda_val,
+            "eta": self.eta,
+            "base_memory": self.base_memory,
+            "test_memory": self.test_memory,
+            "experiment_steps": self.experiment_steps,
+            "old_memory_accuracy": self.old_memory_accuracy,
+            "new_memory_accuracy": self.new_memory_accuracy,
+            "interference_rate": max(0.0, 100.0 - self.old_memory_accuracy),
+            "action_log": self.action_log[:50] # Send last 50 actions to UI
+        }
 
-
-def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
-    """Cosine similarity between two vectors."""
-    a_norm = np.linalg.norm(a)
-    b_norm = np.linalg.norm(b)
-    if a_norm == 0 or b_norm == 0:
-        return 0.0
-    return float(np.dot(a, b) / (a_norm * b_norm))
-
-
-def make_orthogonal_vocab(words: List[str], dim: int) -> dict:
-    """
-    Create an orthonormal embedding for a vocabulary.
-    This ensures perfect retrieval when memory load < dim.
-    """
-    rng = np.random.default_rng(42)
-    basis = rng.standard_normal((len(words), dim))
-    # Gram-Schmidt orthonormalization
-    Q = np.zeros_like(basis)
-    for i in range(len(words)):
-        q = basis[i]
-        for j in range(i):
-            q -= np.dot(q, Q[j]) * Q[j]
-        norm = np.linalg.norm(q)
-        if norm > 1e-10:
-            q /= norm
-        Q[i] = q
-    return {word: Q[i].astype(np.float32) for i, word in enumerate(words)}
+engine = ExperimentEngine()

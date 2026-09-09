@@ -3,115 +3,89 @@ import { useExperiment } from '../context/ExperimentContext';
 import { FileText, Download, Copy } from 'lucide-react';
 
 export const ExperimentReport: React.FC = () => {
-  const { dataset, lambda, eta, oldMemoryRetention, newMemoryAcquisition, interferenceRate, conflictingUpdateCount, historyLog, saveExperiment } = useExperiment();
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`MEMORA-X Report: ${dataset.name} | Retention: ${oldMemoryRetention.toFixed(0)}%`);
-    alert('Report summary copied to clipboard.');
-  };
-
-  const handleExportCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Metric,Value\n"
-      + `Dataset,${dataset.name}\n`
-      + `Lambda,${lambda}\n`
-      + `Eta,${eta}\n`
-      + `Conflicting Updates,${conflictingUpdateCount}\n`
-      + `Old Retention,${oldMemoryRetention.toFixed(2)}%\n`
-      + `New Acquisition,${newMemoryAcquisition.toFixed(2)}%\n`
-      + `Interference Rate,${interferenceRate.toFixed(2)}%\n`;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "memora-x-report.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const { state } = useExperiment();
+  if (!state) return null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-            <FileText className="w-8 h-8" /> EXPERIMENT REPORT
-          </h1>
-          <p className="text-muted-foreground mt-2">"Summary of the current session parameters and results."</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">EXPERIMENT REPORT</h1>
+          <p className="text-muted-foreground text-lg">What did my experiment prove?</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={saveExperiment} className="bg-primary text-primary-foreground px-4 py-2 rounded flex items-center gap-2 hover:bg-primary/90 text-sm font-medium">
-            Save to History
+          <button className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 px-4 py-2 rounded text-sm transition-colors">
+            <Copy className="w-4 h-4" /> COPY RESULTS
           </button>
-          <button onClick={handleExportCSV} className="bg-secondary text-secondary-foreground px-4 py-2 rounded flex items-center gap-2 hover:bg-secondary/80 text-sm font-medium">
-            <Download className="w-4 h-4" /> CSV
-          </button>
-          <button onClick={handleCopy} className="bg-muted text-foreground px-4 py-2 rounded flex items-center gap-2 hover:bg-muted/80 text-sm font-medium">
-            <Copy className="w-4 h-4" /> Copy
+          <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded text-sm transition-colors">
+            <Download className="w-4 h-4" /> EXPORT PDF
           </button>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl shadow-lg p-8">
-        
-        {/* Header info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-border">
+      <div className="bg-card border border-border rounded-xl p-8 shadow-lg">
+        <div className="border-b border-border pb-6 mb-6 flex justify-between items-center">
           <div>
-            <p className="text-xs text-muted-foreground uppercase">Dataset</p>
-            <p className="font-bold">{dataset.name}</p>
+            <h2 className="text-2xl font-bold font-serif">MEMORA-X Laboratory Report</h2>
+            <div className="text-muted-foreground text-sm mt-1">Generated dynamically from unified experiment engine</div>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase">Date</p>
-            <p className="font-bold">{new Date().toLocaleDateString()}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase">Lambda (λ)</p>
-            <p className="font-bold text-blue-400">{lambda.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase">Eta (η)</p>
-            <p className="font-bold text-yellow-500">{eta.toFixed(2)}</p>
+          <div className="text-right text-sm">
+            <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-primary">{state.experiment_id}</span></div>
+            <div><span className="text-muted-foreground">Date:</span> {new Date().toLocaleDateString()}</div>
           </div>
         </div>
 
-        {/* Metrics */}
-        <div className="py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-background border border-border p-6 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground uppercase mb-2">Old Memory Retention</p>
-            <p className={`text-4xl font-black ${oldMemoryRetention > 70 ? 'text-green-500' : 'text-destructive'}`}>{oldMemoryRetention.toFixed(0)}%</p>
+        <div className="grid grid-cols-2 gap-8 mb-8">
+          <div>
+            <h3 className="font-bold uppercase tracking-wider text-xs text-muted-foreground mb-4">Parameters</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Fast Weight Influence (Lambda)</span><span className="font-mono">{state.lambda_val.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Test-Time Learning Rate (Eta)</span><span className="font-mono">{state.eta.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Total Actions Performed</span><span className="font-mono">{state.experiment_steps}</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Base Associations (W)</span><span className="font-mono">{state.base_memory.length}</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Test Associations (S)</span><span className="font-mono">{state.test_memory.length}</span>
+              </div>
+            </div>
           </div>
-          <div className="bg-background border border-border p-6 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground uppercase mb-2">New Acquisition</p>
-            <p className="text-4xl font-black text-blue-500">{newMemoryAcquisition.toFixed(0)}%</p>
-          </div>
-          <div className="bg-background border border-border p-6 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground uppercase mb-2">Interference Rate</p>
-            <p className="text-4xl font-black text-yellow-500">{interferenceRate.toFixed(0)}%</p>
+
+          <div>
+            <h3 className="font-bold uppercase tracking-wider text-xs text-muted-foreground mb-4">Final Metrics</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Old Memory Retention</span><span className={state.old_memory_accuracy < 70 ? 'text-destructive font-bold' : 'text-green-400 font-bold'}>{state.old_memory_accuracy.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>New Memory Acquisition</span><span className="text-blue-400 font-bold">{state.new_memory_accuracy.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between border-b border-border/50 pb-1">
+                <span>Interference Rate</span><span className="text-yellow-400 font-bold">{state.interference_rate.toFixed(1)}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Findings */}
-        <div className="bg-primary/5 border border-primary/20 p-6 rounded-lg mb-8">
-          <h3 className="font-bold text-primary mb-2">Experimental Finding</h3>
-          <p className="text-muted-foreground">
-            After {conflictingUpdateCount} test-time updates, the model achieved a new memory acquisition of {newMemoryAcquisition.toFixed(0)}%, 
-            while retaining {oldMemoryRetention.toFixed(0)}% of its base training. 
-            The interference rate was measured at {interferenceRate.toFixed(0)}%.
-            {interferenceRate > 50 ? " Catastrophic forgetting has significantly degraded the base representations." : " The model successfully adapted to new information without destroying base knowledge."}
+        <div className="bg-background border border-border p-6 rounded-lg">
+          <h3 className="font-bold uppercase tracking-wider text-xs text-primary mb-2 flex items-center gap-2">
+            <FileText className="w-4 h-4" /> EXPERIMENTAL FINDING
+          </h3>
+          <p className="text-lg leading-relaxed">
+            Under a fast-weight influence of <strong className="text-primary">Lambda = {state.lambda_val.toFixed(2)}</strong> and learning rate of <strong className="text-primary">Eta = {state.eta.toFixed(2)}</strong>, the model acquired <strong>{state.new_memory_accuracy.toFixed(0)}%</strong> of new associations while retaining <strong>{state.old_memory_accuracy.toFixed(0)}%</strong> of old associations after <strong>{state.experiment_steps}</strong> experiment steps.
+          </p>
+          <p className="text-muted-foreground mt-4 text-sm">
+            {state.old_memory_accuracy < 70 
+              ? "Conclusion: The current parameters heavily favor plasticity, leading to catastrophic interference of base memories."
+              : "Conclusion: The memory matrix remained relatively stable, successfully resisting complete test-time interference."}
           </p>
         </div>
-
-        {/* Partial Log */}
-        <div>
-          <h3 className="font-bold mb-4">Latest Action Log</h3>
-          <div className="bg-background border border-border p-4 rounded text-xs font-mono text-muted-foreground space-y-1">
-            {historyLog.slice(-5).map((log, i) => (
-              <div key={i}>&gt; {log}</div>
-            ))}
-            {historyLog.length > 5 && <div className="text-primary/50">...and {historyLog.length - 5} more events.</div>}
-          </div>
-        </div>
-
       </div>
     </div>
   );

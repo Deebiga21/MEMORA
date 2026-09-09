@@ -1,318 +1,136 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
-import { AssociativeMemory, Vocabulary } from '../lib/AssociativeMemory';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type DatasetKey = 'animals' | 'math' | 'medical';
+// Global Experiment State Type
+export interface ExperimentState {
+  experiment_id: string;
+  lambda_val: number;
+  eta: number;
+  base_memory: {cue: string, target: string}[];
+  test_memory: {cue: string, target: string}[];
+  experiment_steps: number;
+  old_memory_accuracy: number;
+  new_memory_accuracy: number;
+  interference_rate: number;
+  action_log: {step: number, timestamp: string, action: string, details: string}[];
+}
 
-export const DATASETS = {
-  animals: {
-    name: "Linguistics (Animals)",
-    words: ["CAT", "ANIMAL", "PET", "WILD", "DOG", "BIRD"],
-    base: [{ x: "CAT", y: "ANIMAL" }, { x: "DOG", y: "ANIMAL" }, { x: "BIRD", y: "WILD" }],
-    tests: [{ x: "CAT", y: "PET" }, { x: "CAT", y: "WILD" }],
-    query: "CAT"
-  },
-  math: {
-    name: "Logic (Math)",
-    words: ["2+2", "4", "5", "MATH", "ERROR", "3"],
-    base: [{ x: "2+2", y: "4" }, { x: "MATH", y: "4" }],
-    tests: [{ x: "2+2", y: "5" }, { x: "2+2", y: "ERROR" }],
-    query: "2+2"
-  },
-  medical: {
-    name: "Medical (Symptoms)",
-    words: ["COUGH", "COLD", "COVID", "FLU", "FEVER", "HEALTHY"],
-    base: [{ x: "COUGH", y: "COLD" }, { x: "FEVER", y: "FLU" }],
-    tests: [{ x: "COUGH", y: "COVID" }, { x: "COUGH", y: "HEALTHY" }],
-    query: "COUGH"
-  }
-};
-
-export interface Prediction {
+interface Prediction {
   word: string;
   confidence: number;
 }
 
-export interface ExperimentHistoryEntry {
-  id: string;
-  dataset: string;
-  conflictingUpdates: number;
-  oldRetention: number;
-  newAcquisition: number;
-  lambda: number;
-  eta: number;
-}
-
-interface ExperimentContextProps {
-  datasetKey: DatasetKey;
-  setDatasetKey: (key: DatasetKey) => void;
-  dataset: typeof DATASETS[DatasetKey];
-  vocab: Vocabulary;
-  engine: AssociativeMemory;
-  
-  lambda: number;
-  setLambda: (v: number) => void;
-  eta: number;
-  setEta: (v: number) => void;
-
+interface ExperimentContextType {
+  state: ExperimentState | null;
   predictions: Prediction[];
-  historyLog: string[];
-  
-  queryModel: (word: string, silent?: boolean) => void;
-  updateTestTime: (x: string, y: string) => void;
-  trainBase: (x: string, y: string) => void;
-  eraseMemory: (x: string, y: string) => void;
-  resetState: () => void;
-  fullReset: () => void;
-  
-  // Metrics tracking
-  oldMemoryRetention: number;
-  newMemoryAcquisition: number;
-  interferenceRate: number;
-  conflictingUpdateCount: number;
-
-  savedExperiments: ExperimentHistoryEntry[];
-  saveExperiment: () => void;
-  deleteExperiment: (id: string) => void;
+  queryModel: (word: string) => Promise<void>;
+  updateTestTime: (cue: string, target: string) => Promise<void>;
+  interfere: (cue: string, target: string) => Promise<void>;
+  trainBase: (cue: string, target: string) => Promise<void>;
+  eraseMemory: (cue: string, target: string) => Promise<void>;
+  setParams: (lambda_val: number, eta: number) => Promise<void>;
+  resetExperiment: () => Promise<void>;
+  refreshState: () => Promise<void>;
 }
 
-const ExperimentContext = createContext<ExperimentContextProps | undefined>(undefined);
+const ExperimentContext = createContext<ExperimentContextType | undefined>(undefined);
 
-export const ExperimentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [datasetKey, setDatasetKey] = useState<DatasetKey>('animals');
-  const dataset = DATASETS[datasetKey];
-
-  const vocab = useMemo(() => new Vocabulary(dataset.words), [datasetKey]);
-  const engineRef = useRef<AssociativeMemory>(new AssociativeMemory(vocab.size, 0.5, 0.8));
-  const engine = engineRef.current;
-
-  const [lambda, setLambda] = useState(0.8);
-  const [eta, setEta] = useState(0.5);
-
+export const ExperimentProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [state, setState] = useState<ExperimentState | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [historyLog, setHistoryLog] = useState<string[]>([]);
-  
-  // Track metrics
-  const [conflictingUpdateCount, setConflictingUpdateCount] = useState(0);
-  const [oldMemoryRetention, setOldMemoryRetention] = useState(100);
-  const [newMemoryAcquisition, setNewMemoryAcquisition] = useState(0);
 
-  const [savedExperiments, setSavedExperiments] = useState<ExperimentHistoryEntry[]>([]);
-  
-  const [, setTick] = useState(0);
-  const forceUpdate = () => setTick(t => t + 1);
-
-  // Initialize
-  useEffect(() => {
-    fullReset();
-  }, [datasetKey, vocab]);
-
-  // Handle parameter changes
-  useEffect(() => {
-    engine.lambda = lambda;
-    engine.eta = eta;
-    if (predictions.length > 0) {
-      queryModel(dataset.query, true);
-    }
-    forceUpdate();
-  }, [lambda, eta]);
-
-  const calculateMetrics = async () => {
-    const baseItem = dataset.base[0];
+  const refreshState = useCallback(async () => {
     try {
-      const baseRes = await fetch('http://localhost:8000/api/retrieve', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: baseItem.x, top_k: 5 })
-      });
-      const baseData = await baseRes.json();
-      const baseWords = baseData.results || [];
-      const baseTargetConfidence = baseWords.find((w: any) => w.target === baseItem.y)?.confidence || 0;
-      const retention = Math.max(0, Math.min(100, baseTargetConfidence * 100));
-      setOldMemoryRetention(retention);
+      const res = await fetch('http://localhost:8000/api/experiment/state');
+      const data = await res.json();
+      setState(data);
     } catch (e) {
-      const basePred = engine.forward(vocab.toVector(baseItem.x));
-      const baseWordsLocal = vocab.toWord(basePred);
-      const baseTargetConfLocal = baseWordsLocal.find(w => w.word === baseItem.y)?.confidence || 0;
-      setOldMemoryRetention(Math.max(0, Math.min(100, (baseTargetConfLocal / 1.0) * 100)));
+      console.error('Error fetching state', e);
     }
+  }, []);
 
-    if (conflictingUpdateCount > 0) {
-      const testItem = dataset.tests[(conflictingUpdateCount - 1) % dataset.tests.length];
-      try {
-        const testRes = await fetch('http://localhost:8000/api/retrieve', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: testItem.x, top_k: 5 })
-        });
-        const testData = await testRes.json();
-        const testWords = testData.results || [];
-        const testTargetConfidence = testWords.find((w: any) => w.target === testItem.y)?.confidence || 0;
-        const acquisition = Math.max(0, Math.min(100, testTargetConfidence * 100));
-        setNewMemoryAcquisition(acquisition);
-      } catch (e) {
-        const testPred = engine.forward(vocab.toVector(testItem.x));
-        const testWordsLocal = vocab.toWord(testPred);
-        const testTargetConfLocal = testWordsLocal.find(w => w.word === testItem.y)?.confidence || 0;
-        setNewMemoryAcquisition(Math.max(0, Math.min(100, (testTargetConfLocal / 1.0) * 100)));
-      }
-    } else {
-      setNewMemoryAcquisition(0);
-    }
-  };
+  useEffect(() => {
+    refreshState();
+  }, [refreshState]);
 
-  const queryModel = async (word: string, silent = false) => {
-    // Keep local model updated for visualizations
-    const vec = vocab.toVector(word);
-    const localResult = engine.forward(vec);
-    
+  const queryModel = async (word: string) => {
     try {
-      const res = await fetch('http://localhost:8000/api/retrieve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: word, top_k: 5 })
+      const res = await fetch('http://localhost:8000/api/experiment/query', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cue: word })
       });
       const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        const topWords = data.results.map((r: any) => ({ word: r.target, confidence: r.confidence }));
-        setPredictions(topWords);
-        if (!silent) {
-          setHistoryLog(prev => [...prev, `[API] Queried [${word}] -> Top: ${topWords[0].word}`]);
-        }
-      } else {
-        setPredictions([{ word: "UNKNOWN", confidence: 0 }]);
-        if (!silent) {
-          setHistoryLog(prev => [...prev, `[API] Queried [${word}] -> No match`]);
-        }
-      }
-    } catch (err) {
-      console.error("Backend not reachable, falling back to local model", err);
-      const topWords = vocab.toWord(localResult);
-      setPredictions(topWords);
-      if (!silent) {
-        setHistoryLog(prev => [...prev, `[LOCAL] Queried [${word}] -> Top: ${topWords[0].word}`]);
-      }
+      setPredictions(data.results || []);
+      setState(data.state);
+    } catch (e) {
+      console.error('Error querying model', e);
     }
-
-    calculateMetrics();
-    forceUpdate();
   };
 
-  const updateTestTime = async (x: string, y: string) => {
-    engine.updateState(vocab.toVector(x), vocab.toVector(y));
+  const updateTestTime = async (cue: string, target: string) => {
     try {
-      await fetch('http://localhost:8000/api/store', {
+      const res = await fetch('http://localhost:8000/api/experiment/update', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cue: x, target: y })
+        body: JSON.stringify({ cue, target })
       });
-    } catch (e) { console.error("Backend error", e); }
-    
-    setConflictingUpdateCount(c => c + 1);
-    setHistoryLog(prev => [...prev, `Test-Time Update: [${x}] -> [${y}]`]);
-    calculateMetrics();
-    forceUpdate();
-    queryModel(x, true);
+      setState(await res.json());
+      await queryModel(cue);
+    } catch (e) { console.error('Error updating', e); }
   };
 
-  const trainBase = async (x: string, y: string) => {
-    engine.trainBase([{ x: vocab.toVector(x), y: vocab.toVector(y) }]);
+  const interfere = async (cue: string, target: string) => {
     try {
-      await fetch('http://localhost:8000/api/store', {
+      const res = await fetch('http://localhost:8000/api/experiment/interfere', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cue: x, target: y })
+        body: JSON.stringify({ cue, target })
       });
-    } catch (e) { console.error("Backend error", e); }
-
-    setHistoryLog(prev => [...prev, `Trained Base: [${x}] -> [${y}]`]);
-    calculateMetrics();
-    forceUpdate();
+      setState(await res.json());
+      await queryModel(cue);
+    } catch (e) { console.error('Error interfering', e); }
   };
 
-  const eraseMemory = (x: string, y: string) => {
-    const vX = vocab.toVector(x);
-    const vY = vocab.toVector(y);
-    for (let r = 0; r < engine.size; r++) {
-      for (let c = 0; c < engine.size; c++) {
-        engine.W[r][c] -= vY[r] * vX[c];
-      }
-    }
-    setHistoryLog(prev => [...prev, `Erased Base Memory: [${x}] -> [${y}]`]);
-    calculateMetrics();
-    forceUpdate();
-  };
-
-  const resetState = async () => {
-    engine.resetState();
+  const trainBase = async (cue: string, target: string) => {
     try {
-      await fetch('http://localhost:8000/api/reset', { method: 'POST' });
-      // Restore base memory in backend
-      for (const pair of dataset.base) {
-        await fetch('http://localhost:8000/api/store', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cue: pair.x, target: pair.y })
-        });
-      }
-    } catch (e) { console.error("Backend error", e); }
-
-    setConflictingUpdateCount(0);
-    setOldMemoryRetention(100);
-    setNewMemoryAcquisition(0);
-    setHistoryLog(prev => [...prev, `Reset Fast Weights (State Cleared)`]);
-    calculateMetrics();
-    forceUpdate();
-    setPredictions([]);
+      const res = await fetch('http://localhost:8000/api/experiment/learn', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cue, target })
+      });
+      setState(await res.json());
+    } catch (e) { console.error('Error training base', e); }
   };
 
-  const fullReset = async () => {
-    const newEngine = new AssociativeMemory(vocab.size, eta, lambda);
-    dataset.base.forEach(pair => {
-      newEngine.trainBase([{ x: vocab.toVector(pair.x), y: vocab.toVector(pair.y) }]);
-    });
-    engineRef.current = newEngine;
-    
+  const eraseMemory = async (cue: string, target: string) => {
     try {
-      await fetch('http://localhost:8000/api/reset', { method: 'POST' });
-      // Restore base memory in backend
-      for (const pair of dataset.base) {
-        await fetch('http://localhost:8000/api/store', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cue: pair.x, target: pair.y })
-        });
-      }
-    } catch (e) { console.error("Backend error", e); }
-
-    setHistoryLog([`[SYSTEM] Loaded Dataset: ${dataset.name}`]);
-    setPredictions([]);
-    setConflictingUpdateCount(0);
-    setOldMemoryRetention(100);
-    setNewMemoryAcquisition(0);
-    forceUpdate();
+      const res = await fetch('http://localhost:8000/api/experiment/erase', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cue, target })
+      });
+      setState(await res.json());
+    } catch (e) { console.error('Error erasing', e); }
   };
 
-  const saveExperiment = () => {
-    const newExp: ExperimentHistoryEntry = {
-      id: `EXP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      dataset: dataset.name,
-      conflictingUpdates: conflictingUpdateCount,
-      oldRetention: oldMemoryRetention,
-      newAcquisition: newMemoryAcquisition,
-      lambda,
-      eta
-    };
-    setSavedExperiments(prev => [newExp, ...prev]);
+  const setParams = async (lambda_val: number, eta: number) => {
+    try {
+      const res = await fetch('http://localhost:8000/api/experiment/params', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lambda_val, eta })
+      });
+      setState(await res.json());
+    } catch (e) { console.error('Error setting params', e); }
   };
 
-  const deleteExperiment = (id: string) => {
-    setSavedExperiments(prev => prev.filter(e => e.id !== id));
+  const resetExperiment = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/experiment/reset', { method: 'POST' });
+      setState(await res.json());
+      setPredictions([]);
+      
+      await trainBase("CAT", "ANIMAL");
+    } catch (e) { console.error('Error resetting', e); }
   };
-
-  const interferenceRate = Math.max(0, 100 - oldMemoryRetention);
 
   return (
     <ExperimentContext.Provider value={{
-      datasetKey, setDatasetKey, dataset, vocab, engine,
-      lambda, setLambda, eta, setEta,
-      predictions, historyLog,
-      queryModel, updateTestTime, trainBase, eraseMemory, resetState, fullReset,
-      oldMemoryRetention, newMemoryAcquisition, interferenceRate, conflictingUpdateCount,
-      savedExperiments, saveExperiment, deleteExperiment
+      state, predictions, queryModel, updateTestTime, interfere, trainBase, eraseMemory, setParams, resetExperiment, refreshState
     }}>
       {children}
     </ExperimentContext.Provider>

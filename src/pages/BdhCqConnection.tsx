@@ -1,110 +1,75 @@
 import React, { useState } from 'react';
-import { Settings, Info } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 export const BdhCqConnection: React.FC = () => {
-  const [activeComponent, setActiveComponent] = useState<'ACTIVITY' | 'STATE' | 'SYNAPSES' | 'MEMORY'>('MEMORY');
-
-  const explanations = {
-    ACTIVITY: "In BDH, neural activity directly drives changes in memory. In our toy model, this is the forward pass vector 'y_pred'.",
-    STATE: "The recurrent memory state holds context. BDH uses complex state vectors; we use a simple linear matrix.",
-    SYNAPSES: "BDH modifies actual connection weights dynamically. We simulate this via the Fast Weight matrix (S) updated via delta rule.",
-    MEMORY: "The final memory retrieval behavior is altered seamlessly without slow backpropagation, achieving fast learning."
-  };
+  const [activeConcept, setActiveConcept] = useState<string | null>(null);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-          <Settings className="w-8 h-8" /> BDH-CQ CONNECTION
-        </h1>
-        <p className="text-muted-foreground mt-2">"From fast associative updates to brain-inspired synaptic plasticity."</p>
-      </div>
-
-      <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex items-start gap-3">
-        <Info className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-        <p className="text-sm text-destructive-foreground">
-          <strong>Important Note:</strong> MEMORA-X is an educational experimental substrate. The linear associative memory and delta rule used here are toy models. They demonstrate the <em>concept</em> of inference-time learning, but they are NOT the exact, complex architecture of actual BDH / BDH-CQ models.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Comparison Table */}
-        <div className="bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-muted p-4 border-b border-border">
-            <h3 className="font-bold">Mechanism Comparison</h3>
-          </div>
-          <div className="p-0">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-background/50 text-muted-foreground uppercase text-xs">
-                <tr>
-                  <th className="px-4 py-3">Property</th>
-                  <th className="px-4 py-3 border-l border-border text-primary">MEMORA-X TOY</th>
-                  <th className="px-4 py-3 border-l border-border text-accent">BDH-CQ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <td className="px-4 py-3 font-medium">Memory mechanism</td>
-                  <td className="px-4 py-3 border-l border-border">Linear Outer Product</td>
-                  <td className="px-4 py-3 border-l border-border">Modern Hopfield / Transformer KV</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Update mechanism</td>
-                  <td className="px-4 py-3 border-l border-border">Standard Delta Rule</td>
-                  <td className="px-4 py-3 border-l border-border">Continuous Q-Learning / Hebbian</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Inference-time adaptation</td>
-                  <td className="px-4 py-3 border-l border-border">Yes (Fast Matrix S)</td>
-                  <td className="px-4 py-3 border-l border-border">Yes (Dynamic Synaptic State)</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">State representation</td>
-                  <td className="px-4 py-3 border-l border-border">Static 1-hot vectors</td>
-                  <td className="px-4 py-3 border-l border-border">Dense continuous embeddings</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium">Synaptic plasticity</td>
-                  <td className="px-4 py-3 border-l border-border">Simulated Matrix Add</td>
-                  <td className="px-4 py-3 border-l border-border">Parameterized plasticity rules</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <h1 className="text-3xl font-bold tracking-tight text-primary">BDH-CQ CONNECTION</h1>
+      <p className="text-muted-foreground text-lg">How does this relate to brain-inspired inference-time learning?</p>
+      
+      <div className="bg-destructive/10 border border-destructive/30 rounded p-4 text-sm text-foreground flex gap-4 items-start">
+        <Activity className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+        <div>
+          <strong>Educational Substrate Notice:</strong> MEMORA-X is an educational experimental substrate. 
+          It uses explicit fast-weight matrices for clarity. It is NOT the official BDH or BDH-CQ architecture, 
+          which use local synaptic states and recurrent dynamics to achieve test-time adaptation.
         </div>
+      </div>
 
-        {/* Interactive Diagram */}
-        <div className="bg-card border border-border rounded-xl shadow-lg p-6 flex flex-col">
-          <h3 className="font-bold mb-6 text-center">What changes during test-time?</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold border-b border-border pb-4 mb-6">MEMORA-X vs BDH-CQ</h2>
           
-          <div className="flex-1 flex flex-col justify-center items-center gap-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4 text-sm font-bold text-muted-foreground uppercase border-b border-border pb-2">
+              <div>Feature</div>
+              <div>MEMORA-X</div>
+              <div>BDH-CQ</div>
+            </div>
             
-            {['ACTIVITY', 'STATE', 'SYNAPSES', 'MEMORY'].map((item, index) => (
-              <React.Fragment key={item}>
-                <button
-                  onClick={() => setActiveComponent(item as any)}
-                  className={`w-full max-w-xs py-3 rounded-lg border font-bold tracking-wider transition-all ${
-                    activeComponent === item 
-                      ? 'bg-primary text-primary-foreground border-primary scale-105 shadow-[0_0_15px_rgba(var(--primary),0.5)]' 
-                      : 'bg-background border-border text-muted-foreground hover:border-primary/50'
-                  }`}
-                >
-                  {item}
-                </button>
-                {index < 3 && <div className="h-4 w-px bg-border"></div>}
-              </React.Fragment>
-            ))}
+            <div className="grid grid-cols-3 gap-4 text-sm border-b border-border/30 pb-2">
+              <div className="font-semibold">Memory Mechanism</div>
+              <div>Explicit dual matrices (W, S)</div>
+              <div>Recurrent state & localized synaptic traces</div>
+            </div>
 
-          </div>
+            <div className="grid grid-cols-3 gap-4 text-sm border-b border-border/30 pb-2">
+              <div className="font-semibold">Update Mechanism</div>
+              <div>Global matrix outer product</div>
+              <div>Local Hebbian / Delta rule at synapse</div>
+            </div>
 
-          <div className="mt-8 bg-background border border-border rounded-lg p-4 min-h-[100px] flex items-center justify-center text-center">
-            <p className="text-muted-foreground text-sm">
-              {explanations[activeComponent]}
-            </p>
+            <div className="grid grid-cols-3 gap-4 text-sm border-b border-border/30 pb-2">
+              <div className="font-semibold">Inference-time adaptation</div>
+              <div>Yes</div>
+              <div>Yes (via test-time gradients)</div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 text-sm pb-2">
+              <div className="font-semibold">State</div>
+              <div>Global</div>
+              <div>Distributed</div>
+            </div>
           </div>
         </div>
 
+        <div className="bg-card border border-border rounded-xl p-6 shadow-lg flex flex-col items-center">
+          <h2 className="text-xl font-bold border-b border-border pb-4 mb-6 w-full text-left">Conceptual Pathway</h2>
+          
+          <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+            <button onMouseEnter={() => setActiveConcept('INPUT')} onMouseLeave={() => setActiveConcept(null)} className={`w-full py-3 rounded border font-bold transition-all ${activeConcept === 'INPUT' ? 'bg-primary text-primary-foreground border-primary scale-105' : 'bg-background border-border hover:border-primary/50'}`}>INPUT</button>
+            <div className="h-4 w-0.5 bg-border"></div>
+            <button onMouseEnter={() => setActiveConcept('STATE')} onMouseLeave={() => setActiveConcept(null)} className={`w-full py-3 rounded border font-bold transition-all ${activeConcept === 'STATE' ? 'bg-primary text-primary-foreground border-primary scale-105' : 'bg-background border-border hover:border-primary/50'}`}>INTERNAL STATE</button>
+            <div className="h-4 w-0.5 bg-border"></div>
+            <button onMouseEnter={() => setActiveConcept('LOCAL')} onMouseLeave={() => setActiveConcept(null)} className={`w-full py-3 rounded border font-bold transition-all ${activeConcept === 'LOCAL' ? 'bg-primary text-primary-foreground border-primary scale-105' : 'bg-background border-border hover:border-primary/50'}`}>LOCAL UPDATE</button>
+            <div className="h-4 w-0.5 bg-border"></div>
+            <button onMouseEnter={() => setActiveConcept('SYNAPSE')} onMouseLeave={() => setActiveConcept(null)} className={`w-full py-3 rounded border font-bold transition-all ${activeConcept === 'SYNAPSE' ? 'bg-primary text-primary-foreground border-primary scale-105' : 'bg-background border-border hover:border-primary/50'}`}>SYNAPTIC CHANGE</button>
+            <div className="h-4 w-0.5 bg-border"></div>
+            <button onMouseEnter={() => setActiveConcept('BEHAVIOR')} onMouseLeave={() => setActiveConcept(null)} className={`w-full py-3 rounded border font-bold transition-all ${activeConcept === 'BEHAVIOR' ? 'bg-primary text-primary-foreground border-primary scale-105' : 'bg-background border-border hover:border-primary/50'}`}>CHANGED BEHAVIOR</button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,111 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useExperiment } from '../context/ExperimentContext';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine } from 'recharts';
-import { BrainCircuit, Info } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { Activity } from 'lucide-react';
 
 export const RetentionVsLearning: React.FC = () => {
-  const { oldMemoryRetention, newMemoryAcquisition, interferenceRate, conflictingUpdateCount } = useExperiment();
+  const { state } = useExperiment();
+  if (!state) return null;
 
-  // For this lab, we ideally want to show a curve over time. 
-  // We'll build a synthetic curve based on the current metrics to illustrate the concept.
-  const [chartData, setChartData] = useState<{update: number, retention: number, acquisition: number}[]>([]);
-
-  useEffect(() => {
-    // Generate a curve up to the current conflict count
-    const data = [];
-    for (let i = 0; i <= Math.max(10, conflictingUpdateCount + 2); i++) {
-      // If we are at the exact current update count, use the actual real metrics
-      if (i === conflictingUpdateCount) {
-        data.push({
-          update: i,
-          retention: oldMemoryRetention,
-          acquisition: newMemoryAcquisition
-        });
-      } else if (i < conflictingUpdateCount) {
-         // Past data points (approximated for visual continuity if not recorded)
-         data.push({
-          update: i,
-          retention: 100 - (i * i * 1.5), // Example curve
-          acquisition: 50 + (i * 10)
-        });
-      } else {
-        // Future projection
-        data.push({
-          update: i,
-          retention: Math.max(0, oldMemoryRetention - ((i - conflictingUpdateCount) * 15)),
-          acquisition: Math.min(100, newMemoryAcquisition + ((i - conflictingUpdateCount) * 5))
-        });
-      }
-    }
-    setChartData(data);
-  }, [conflictingUpdateCount, oldMemoryRetention, newMemoryAcquisition]);
-
-  const failureThreshold = chartData.findIndex(d => d.retention < 70);
-  const failurePoint = failureThreshold > 0 ? failureThreshold : 7; // Default fallback
-
-  const generateInterpretation = () => {
-    if (conflictingUpdateCount === 0) return "The model currently holds its base memory perfectly. Add conflicting updates to observe degradation.";
-    if (oldMemoryRetention > 80) return "New associations are being acquired while old memory remains largely intact. The network capacity is not yet exceeded.";
-    if (oldMemoryRetention > 40) return `Old memory retention is degrading noticeably. At update ${conflictingUpdateCount}, interference is substantial (${interferenceRate.toFixed(0)}%).`;
-    return "Catastrophic forgetting has occurred. The fast weights have entirely overwritten the original slow-weight representations.";
-  };
+  const chartData = [
+    { step: 0, old: 100, new: 0 },
+    { step: state.experiment_steps, old: state.old_memory_accuracy, new: state.new_memory_accuracy }
+  ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-          <BrainCircuit className="w-8 h-8" /> RETENTION VS LEARNING
-        </h1>
-        <p className="text-muted-foreground mt-2">"Does learning more mean remembering less?"</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <h1 className="text-3xl font-bold tracking-tight text-primary">STABILITY VS PLASTICITY</h1>
+      <p className="text-muted-foreground text-lg">Does learning new information come at the cost of remembering old information?</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-card border border-border p-8 rounded-xl shadow-lg flex flex-col items-center justify-center text-center">
-          <h3 className="text-lg font-bold text-muted-foreground mb-2">NEW MEMORY ACQUISITION</h3>
-          <p className="text-6xl font-black text-blue-500">{newMemoryAcquisition.toFixed(0)}%</p>
+      <div className="bg-card border border-border rounded-xl p-6 shadow-lg">
+        <div className="h-80 w-full mb-6">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="step" stroke="hsl(var(--muted-foreground))" tick={{fill: 'hsl(var(--muted-foreground))'}} />
+              <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{fill: 'hsl(var(--muted-foreground))'}} />
+              <Tooltip 
+                contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '4px'}}
+                itemStyle={{color: 'hsl(var(--foreground))'}}
+              />
+              <ReferenceLine y={70} stroke="hsl(var(--destructive))" strokeDasharray="3 3" label={{ position: 'top', value: 'Failure Threshold', fill: 'hsl(var(--destructive))' }} />
+              <Line type="monotone" name="Old Retention" dataKey="old" stroke="#4ade80" strokeWidth={3} dot={{r: 6}} />
+              <Line type="monotone" name="New Acquisition" dataKey="new" stroke="#60a5fa" strokeWidth={3} dot={{r: 6}} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-        <div className="bg-card border border-border p-8 rounded-xl shadow-lg flex flex-col items-center justify-center text-center">
-          <h3 className="text-lg font-bold text-muted-foreground mb-2">OLD MEMORY RETENTION</h3>
-          <p className={`text-6xl font-black ${oldMemoryRetention > 70 ? 'text-green-500' : oldMemoryRetention > 40 ? 'text-yellow-500' : 'text-destructive'}`}>
-            {oldMemoryRetention.toFixed(0)}%
-          </p>
-        </div>
-      </div>
 
-      <div className="bg-card border border-border p-6 rounded-xl shadow-lg h-96 relative">
-        <div className="absolute top-6 right-6 flex gap-6 text-sm">
-          <div className="text-right">
-            <div className="text-muted-foreground uppercase">Interference Rate</div>
-            <div className="font-bold text-xl text-destructive">{interferenceRate.toFixed(0)}%</div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="p-4 bg-background border border-border rounded text-center">
+            <div className="text-xs text-muted-foreground uppercase mb-1">Old Retention</div>
+            <div className="text-2xl font-bold text-green-400">{state.old_memory_accuracy.toFixed(1)}%</div>
           </div>
-          <div className="text-right">
-            <div className="text-muted-foreground uppercase">Failure Threshold</div>
-            <div className="font-bold text-xl text-yellow-500">{failurePoint} updates</div>
+          <div className="p-4 bg-background border border-border rounded text-center">
+            <div className="text-xs text-muted-foreground uppercase mb-1">New Acquisition</div>
+            <div className="text-2xl font-bold text-blue-400">{state.new_memory_accuracy.toFixed(1)}%</div>
+          </div>
+          <div className="p-4 bg-background border border-border rounded text-center">
+            <div className="text-xs text-muted-foreground uppercase mb-1">Failure Threshold</div>
+            <div className="text-2xl font-bold text-destructive">70%</div>
+          </div>
+          <div className="p-4 bg-background border border-border rounded text-center">
+            <div className="text-xs text-muted-foreground uppercase mb-1">Total Updates</div>
+            <div className="text-2xl font-bold text-primary">{state.experiment_steps}</div>
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="update" stroke="#888" label={{ value: 'Number of Test-Time Updates', position: 'bottom', offset: 0, fill: '#888' }} />
-            <YAxis stroke="#888" domain={[0, 100]} label={{ value: 'Accuracy %', angle: -90, position: 'insideLeft', fill: '#888' }} />
-            <Tooltip contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--card-foreground))'}} />
-            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ bottom: -10 }} />
-            
-            <ReferenceLine x={failurePoint} stroke="hsl(var(--destructive))" strokeDasharray="3 3" label={{ position: 'top', value: 'Failure Point', fill: 'hsl(var(--destructive))', fontSize: 12 }} />
-            <ReferenceLine x={conflictingUpdateCount} stroke="hsl(var(--primary))" strokeDasharray="3 3" label={{ position: 'top', value: 'Current State', fill: 'hsl(var(--primary))', fontSize: 12 }} />
-
-            <Line type="monotone" name="New Memory Acquisition" dataKey="acquisition" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{r: 6}} />
-            <Line type="monotone" name="Old Memory Retention" dataKey="retention" stroke="#22c55e" strokeWidth={3} dot={false} activeDot={{r: 6}} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="bg-primary/10 border border-primary/20 p-6 rounded-xl flex gap-4 items-start">
-        <Info className="w-6 h-6 text-primary shrink-0 mt-1" />
-        <div>
-          <h4 className="font-bold text-lg mb-2 text-primary">Experimental Finding</h4>
-          <p className="text-muted-foreground leading-relaxed">{generateInterpretation()}</p>
+        <div className="p-4 bg-primary/10 border border-primary/30 rounded flex gap-4 items-start">
+          <Activity className="w-6 h-6 text-primary shrink-0 mt-1" />
+          <div>
+            <h3 className="font-bold text-primary mb-1">Technical Interpretation</h3>
+            <p className="text-sm text-foreground">
+              {state.old_memory_accuracy < 70 ? 
+                `With lambda at ${state.lambda_val.toFixed(2)}, the new associations overwrote the base representation, dropping old retention below the critical threshold of 70%.` :
+                `The model acquired ${state.new_memory_accuracy.toFixed(1)}% of new associations while keeping old memory retention stable at ${state.old_memory_accuracy.toFixed(1)}%.`
+              }
+            </p>
+          </div>
         </div>
       </div>
     </div>
