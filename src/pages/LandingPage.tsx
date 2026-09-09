@@ -79,31 +79,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunch }) => {
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-end px-8 md:px-12 lg:px-24 z-20">
         
         {/* Glassmorphic Main Card */}
-        <div className="w-full max-w-2xl backdrop-blur-xl bg-black/40 border border-white/10 p-10 md:p-12 rounded-[2rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] relative overflow-hidden mt-10 lg:mt-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+        <div className="w-full max-w-2xl backdrop-blur-2xl bg-[#130f1e]/80 border border-white/10 p-10 md:p-12 rounded-[24px] shadow-[0_0_80px_rgba(168,85,247,0.15)] relative mt-10 lg:mt-0">
           
-          <div className="relative z-10 text-center lg:text-right space-y-4">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
-              MEMORA-X
-            </h1>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-cyan-100 tracking-tight drop-shadow-lg">
-              AI Memory Lab
-            </h2>
+          <div className="relative z-10 flex flex-col space-y-6">
+            <div className="flex flex-col items-center lg:items-end">
+              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter text-white drop-shadow-2xl leading-none">
+                MEMORA-X
+              </h1>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-cyan-50/90 tracking-tight drop-shadow-lg mt-2">
+                AI Memory Lab
+              </h2>
+            </div>
             
-            <p className="text-base md:text-lg text-blue-100/80 leading-relaxed font-light mt-6 mb-10 max-w-lg mx-auto lg:ml-auto lg:mr-0">
+            <p className="text-base md:text-lg text-[#a1a1aa] leading-relaxed font-light mt-8 mb-8 text-center px-4">
               "Experiment with how AI learns, updates, remembers and forgets."
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-end gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
               <button 
                 onClick={onLaunch}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-8 py-3 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest backdrop-blur-md hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-105"
+                className="bg-[#27272a] hover:bg-[#3f3f46] border border-white/10 text-white px-8 py-3.5 rounded-[16px] text-xs font-bold transition-all flex items-center justify-center gap-2 tracking-widest shadow-lg hover:scale-105"
               >
                 START EXPERIMENT
               </button>
               <button 
                 onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-                className="bg-transparent hover:bg-white/5 border border-white/10 text-white/80 px-8 py-3 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 tracking-widest backdrop-blur-sm"
+                className="bg-[#18181b] hover:bg-[#27272a] border border-white/5 text-white/80 px-8 py-3.5 rounded-[16px] text-xs font-bold transition-all flex items-center justify-center gap-2 tracking-widest"
               >
                 EXPLORE MEMORY
               </button>
