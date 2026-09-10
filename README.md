@@ -1,168 +1,110 @@
-# 🧠 MEMORA
+# MEMORA: AI Memory Lab
 
-**An Interactive Laboratory for Fast-Weight Associative Memory and Test-Time Adaptation**
+**A DataForge 2026: Pathway Track Submission**
 
-*DataForge 2026: Pathway Track*
-
----
-
-## One-Sentence Claim
-
-> A fast-weight associative memory can adapt to new associations at test time without
-> retraining, but retrieval accuracy degrades predictably when conflicting memories
-> compete for the same synaptic resources.
+Memora is an interactive educational sandbox designed to demystify how frontier AI architectures adapt to new information at test time without retraining their base parameters.
 
 ---
 
-## Selected Topics
+## 1. The Central Claim
 
-1. **Associative Memory and Fast Weights**
-2. **Test-Time Adaptation**
-
-Combined into one central claim and one coherent learning journey, as required by
-the Pathway Track (PDF page 2: "A team may combine two closely related topics only
-when the final artifact still has one central claim and one coherent learning journey").
+A fast-weight associative memory system can rapidly adapt to new information by updating its state at test time rather than retraining its full model, but retrieval accuracy degrades predictably due to catastrophic forgetting when conflicting associations compete for the same memory resources.
 
 ---
 
-## Intended Learner
+## 2. Target Audience & Prerequisites
 
-- **Audience:** 2nd–3rd year CS/AI students, data scientists curious about memory architectures
-- **Prerequisites:** Basic linear algebra (matrices, vectors, dot product), basic Python
-- **Learning Objectives:**
+**Intended Learner:** 
+Undergraduate computer science students, junior AI researchers, and data scientists looking to understand modern in-context learning mechanisms beyond standard Transformers.
 
-1. Understand how associative memory stores and retrieves via fast weights
-2. Distinguish parameter updates from state updates from fast-weight updates
-3. Observe interference as a real, measurable failure mode
-4. Connect toy mechanisms to BDH-CQ's recurrent state adaptation
-
----
-
-## What This Artifact Does
-
-MEMORA is a browser-based interactive lab where learners:
-
-1. **Store** associations (e.g., CAT → ANIMAL) in a fast-weight matrix
-2. **Query** the memory and see content-addressed retrieval via softmax attention
-3. **Update** associations at test time and observe immediate changes
-4. **Conflict** multiple associations for the same cue and measure interference
-5. **Connect** the toy mechanism to BDH-CQ's published architecture
-
-The artifact follows the PDF's design standards (page 9):
-
-- One claim, one substrate, visible state
-- Truth beside estimate (ground truth shown next to retrieval)
-- Catchy preset (Animals preset loads immediately)
-- Fast feedback (<1 second for all operations)
-- Few controls (each maps to one real variable)
-- Guide, then sandbox (learning journey stages)
+**Prerequisites:**
+* Basic understanding of neural networks (weights vs. activations).
+* Foundational linear algebra (vectors, matrices, dot products, outer products).
+* Familiarity with the concept of "Test-Time Adaptation" or "In-Context Learning".
 
 ---
 
-## Architecture
+## 3. Learning Objectives
 
-```javascript
-User
-↓
-Streamlit UI (text input, sliders, buttons, tabs)
-↓
-Text Encoder (deterministic hash → unit vector) [SYNTHETIC]
-↓
-FastWeightMemory (NumPy: store/retrieve/update) [LIVE COMPUTATION]
-↓
-Retrieval Engine (softmax attention over keys) [LIVE COMPUTATION]
-↓
-Metrics Calculator (accuracy, interference, condition number) [LIVE COMPUTATION]
-↓
-Plotly Visualizations (heatmap, bar charts, scatter) [VISUALIZATION]
-↓
-BDH-CQ Comparison Module (static explanation + equations) [PRECOMPUTED CONTENT]
+After completing the interactive modules in the MEMORA lab, learners will be able to:
+1. Explain how outer products store associative memories in a matrix (Fast Weights).
+2. Demonstrate test-time adaptation by updating memory state without running slow backpropagation on base model parameters.
+3. Measure and visualize catastrophic forgetting by inducing interference between conflicting concepts.
+4. Relate these toy mechanisms directly to state-of-the-art recurrent architectures like Pathway's BDH (Brain-Inspired Dynamic Hatchling) and BDH-CQ.
+
+---
+
+## 4. Artifact Architecture & Component Roles
+
+The MEMORA lab is built as a decoupled modern web application using React (Vite) and Python (FastAPI). To comply with track requirements, the role and nature of each major component are explicitly classified below:
+
+* **React Frontend (UI & Orchestration) `[ANIMATED / VISUALIZATION]`**: Built with Tailwind CSS, Recharts, and react-force-graph-2d. Responsible for rendering the interactive visual representations of the neural state and managing the user's learning journey across the modules.
+* **WebGL Backgrounds `[ANIMATED / SYNTHETIC]`**: Purely visual, synthetic representations of "neural activity" to engage the learner visually. They do not reflect the actual underlying matrix math.
+* **Python / FastAPI Backend `[LIVE COMPUTATION]`**: Serves the API endpoints and processes the mathematical logic for the memory states.
+* **Fast-Weight Memory Engine `[LIVE COMPUTATION]`**: The mathematical core of the lab. Executes real NumPy (backend) or TypeScript (frontend) outer-product updates, delta-rule learning, and softmax attention retrievals in real-time.
+* **Word-to-Vector Encoder `[SYNTHETIC]`**: Instead of using a massive, slow LLM embedding model, we use a deterministic, synthetic one-hot / orthogonal vector projection for vocabulary terms to isolate and cleanly demonstrate the math of associative memory.
+* **BDH-CQ Comparison Explanations `[PRECOMPUTED]`**: Static educational content connecting the live interactive sandbox to published academic architectures, utilizing documented evaluations from the original research.
+
+---
+
+## 5. Setup & Reproduction Instructions
+
+To reproduce the environment and run the lab locally, ensure you have **Node.js (v20+)** and **Python (v3.10+)** installed.
+
+**1. Clone the repository:**
+```bash
+git clone https://github.com/Deebiga21/MEMORA.git
+cd MEMORA
 ```
 
-**Labeling:**
+**2. Install Frontend Dependencies & Build:**
+```bash
+npm install
+npm run build
+```
 
-- **LIVE COMPUTATION:** Real NumPy matrix operations happening at runtime
-- **SYNTHETIC:** Deterministic text-to-vector encoding (not learned embeddings)
-- **VISUALIZATION:** Plotly charts rendering computed data
-- **PRECOMPUTED CONTENT:** Static text, equations, and diagrams from published papers
-
----
-
-## Running Locally
-
+**3. Install Backend Dependencies:**
 ```bash
 pip install -r requirements.txt
-streamlit run app.py
 ```
 
-Then open `http://localhost:8501` in your browser.
-
----
-
-## Deployment
-
-### Streamlit Cloud (Recommended)
-
-1. Push this repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect your repo
-4. App deploys automatically
-
----
-
-## Repository Structure
-
-```javascript
-memora/
-├── app.py                    # Main Streamlit application
-├── memory.py                 # FastWeightMemory class + encoder
-├── requirements.txt          # Dependencies
-├── README.md                 # This file
-├── docs/
-│   ├── CONCEPT_SUMMARY.md    # One-page concept summary (500–950 words)
-│   ├── CITATIONS.bib         # BibTeX for all papers
-│   ├── AI_DISCLOSURE.md      # AI assistance disclosure
-│   └── JUDGE_PREP.md         # Q&A for defense
-└── tests/
-    └── test_memory.py        # Unit tests
+**4. Run the Full Stack Server:**
+```bash
+uvicorn main:app --reload --port 8000
 ```
 
----
-
-## Recent Primary Papers (2022–2026)
-
-1. **FAAST** — Zhang et al., 2026. Forward-Only Associative Learning via Closed-Form
-Fast Weights for Test-Time Supervised Adaptation. arXiv:2605.04651.
-2. **Titans** — Behrouz et al., 2025. Titans: Learning to Memorize at Test Time.
-arXiv:2501.00663.
-3. **Test-Time Regression** — Wang et al., 2025. Test-time Regression: A Unifying
-Framework for Designing Sequence Models with Associative Memory. arXiv:2501.12352.
-4. **BDH-CQ** — Pathway Research, 2026. BDH-CQ: In-Context Learning with Recurrent
-Latent Reasoning. arXiv:2608.09888.
-5. **Modern Hopfield Attention** — Masumura & Taki, 2025. On the Role of Hidden States
-of Modern Hopfield Network in Transformer. NeurIPS 2025. arXiv:2511.20698.
-6. **BDH (Dragon Hatchling)** — Kosowski et al., 2025. The Dragon Hatchling: The
-Missing Link between the Transformer and Models of the Brain. arXiv:2509.26507.
+**5. Access the Lab:**
+Open `http://localhost:8000/` in your web browser.
 
 ---
 
-## AI Assistance Disclosure
+## 6. Academic Citations
 
-AI tools (ChatGPT/Claude) were used for:
+The technical claims demonstrated in this artifact are supported by recent state-of-the-art research.
 
-- Research synthesis and paper discovery
-- Code structure suggestions and documentation drafting
-- Mathematical formulation verification
-
-All implementation decisions, experiment design, parameter tuning, and final
-verification were performed by the human team. Every team member can explain every
-line of code. See `docs/AI_DISCLOSURE.md` for full details.
+* **Test-Time Adaptation via Fast Weights:** Our live test-time adaptation sandbox (Fast Weight Lab) relies on the premise that closed-form outer product updates allow forward-only test-time learning *(Zhang et al., 2026. "FAAST: Forward-Only Associative Learning via Closed-Form Fast Weights for Test-Time Supervised Adaptation." arXiv:2605.04651)*.
+* **Interference and Catastrophic Forgetting:** The Interference Lab modules demonstrate that bounded fast-weights suffer from capacity limits and catastrophic forgetting without mechanisms like surprise-gating *(Behrouz et al., 2025. "Titans: Learning to Memorize at Test Time." arXiv:2501.00663)*.
+* **Connection to Recurrent Architectures:** The theoretical connection section of the lab explains how associative memory forms the core of modern recurrent alternatives to Transformers, specifically noting how inference-time examples update recurrent memory *(Pathway Research, 2026. "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning." arXiv:2608.09888)*.
 
 ---
 
-## License
+## 7. Provenance, Licenses, and Disclosures
 
-MIT License. See LICENSE file.
+### Asset Record
 
-All paper citations belong to their respective authors.
-BDH and BDH-CQ are trademarks of Pathway.
+* **Codebase:** Original React/Vite/FastAPI implementation by the Deebiga21/MEMORA team.
+* **Icons:** lucide-react (ISC License).
+* **Charts/Graphs:** recharts (MIT License) and react-force-graph-2d (MIT License).
+* **Styling:** Tailwind CSS v4 (MIT License).
+* **Fonts:** System defaults + standard web fonts.
+* **Graphics:** `hero-bg.jpg` and `hero-graphic.png` are synthetic/AI-generated assets created specifically for this educational project.
+
+### AI Disclosure
+
+* **Code Generation & Review:** Agentic AI coding assistants were heavily utilized for structural boilerplate generation, UI design layout (Tailwind CSS generation), and React component orchestration.
+* **Math Verification:** AI tools were used to verify the pure TypeScript/NumPy implementations of the Delta Rule and Softmax Attention mechanisms.
+* **Copywriting:** AI was used to draft educational summaries and distill complex research papers into accessible learning modules. All generated text was reviewed, verified against primary sources, and refined by human team members.
+
+### Fork Disclosure
+
+This is an original project created specifically for the DataForge 2026 Pathway track. It does not fork or directly reuse existing upstream repositories, though it implements standard mathematical mechanisms widely published in machine learning literature.
